@@ -1,0 +1,6020 @@
+directive @defer(label: String, if: Boolean! = true) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+input AddUserRequest {
+  id: ID
+  email: String
+}
+
+type AddUserResponse {
+  id: ID
+  email: String
+  error: String!
+}
+
+input ApplyToEventWaitListInput {
+  eventId: String!
+  questionnaireResponse: String
+}
+
+type Assignment {
+  """
+  Unique ID of the assignment
+  """
+  id: ID!
+
+  """
+  The title of the assignment which is displayed internally
+  """
+  assignmentTitle: String!
+
+  """
+  The reason for assignment which is (Optional but not null) which would be displayed to the users
+  """
+  assignmentReason: String!
+
+  """
+  All the learning paths associated with this assigned content
+  """
+  learningPaths: LearningPathConnection!
+    @deprecated(reason: "use contents instead to get all contents including learning paths")
+
+  """
+  All the contents associated with this assignment (for backward incompatibility issue with mobile)
+  """
+  contents: ContentConnection
+
+  """
+  All the contents associated with this assignment
+  """
+  contentCards: ContentConnection @deprecated(reason: "faced backward incompatibility issue, use contents instead")
+
+  """
+  All the users that have received the assignment
+  """
+  users: UserCollection
+
+  """
+  The groups to which this assignment has been assigned
+  """
+  orgGroups: [OrganisationGroup!]!
+
+  """
+  Background image of the assignment
+  """
+  backgroundImage: Image
+
+  """
+  Who created the assignment
+  """
+  createdBy: User!
+
+  """
+  Who last updated the assignment
+  """
+  updatedBy: User
+
+  """
+  When the assignment was created
+  """
+  createdAt: Time!
+
+  """
+  The last time the assignment was updated
+  """
+  updatedAt: Time!
+
+  """
+  The due date to finish the assignment
+  """
+  dueDate: Time
+
+  """
+  The status of assignment (ACTIVE / INACTIVE / EXPIRED)
+  """
+  status: AssignmentStatus
+
+  """
+  Total time of the assignment (Sum of all trails and contents in seconds).
+  """
+  length: Int!
+
+  """
+  Percentage progress of the assignment (Average out of all trails and contents)
+  Note: This field can only be resolve if called from user obj as parent.
+  """
+  completionRate: Int!
+
+  """
+  Total time user spent for the assignment in seconds.
+  Note: This field can only be resolve if called from user obj as parent.
+  """
+  timeConsumed: Int!
+
+  """
+  Statistics of assigned and completed contents per assignment.
+  Note: This field can only be resolve if called from user obj as parent.
+  """
+  userAssignmentStatistics: UserAssignmentStatistics!
+
+  """
+  Indicate the time of when user complete this assignment.
+  If this field empty, it means user have not completed yet.
+
+  Note: This field can only be resolve if called from user obj as parent.
+  """
+  completedAt: Time
+
+  """
+  Indicate whether the assignment is 'NEW' or 'VIEWED'
+
+  Note: This field can only be resolve if called from user obj as parent.
+  """
+  state: AssignmentState
+}
+
+type AssignmentConnection {
+  edges: [Assignment!]!
+  meta: PageInfo!
+}
+
+input AssignmentContentInput {
+  id: ID!
+  contentType: ContentType!
+  index: Int!
+}
+
+type AssignmentContentStatistics {
+  """
+  The ID of the content piece
+  """
+  contentId: ID!
+
+  """
+  The name of the content piece
+  """
+  contentName: String!
+
+  """
+  The estimated length of the content piece
+  """
+  contentLength: Int!
+
+  """
+  The number of users that have been assigned this content piece
+  """
+  usersAssigned: Int!
+
+  """
+  The average completion rate for this content piece
+  """
+  avgCompletionRate: Float!
+
+  """
+  Totalt amount of time the users have spent on this content piece
+  """
+  durationConsumed: Int!
+}
+
+type AssignmentGroupStatistics {
+  """
+  The ID of the content piece
+  """
+  groupID: ID!
+
+  """
+  The name of the content piece
+  """
+  groupName: String!
+
+  """
+  The number of users that have been assigned this content piece
+  """
+  peopleInTotal: Int!
+
+  """
+  The average completion rate for this content piece
+  """
+  avgCompletionRate: Float!
+
+  """
+  Totalt amount of time the users have spent on this content piece
+  """
+  durationConsumed: Int!
+}
+
+input AssignmentInput {
+  """
+  Internal title of assignment
+  """
+  assignmentTitle: String!
+
+  """
+  Optional reason to display to the users
+  """
+  assignmentReason: String!
+
+  """
+  List of learning path ids to be part of the assignment
+  """
+  learningPaths: [ID!] @deprecated(reason: "use contents to fill with learning path to ensure ordering")
+
+  """
+  List of contents to be part of the assignment.
+
+  Note: the learning paths needs to be input here.
+  """
+  contents: [AssignmentContentInput!]
+
+  """
+  List of users to assign the content to
+  """
+  users: [ID!]!
+
+  """
+  List of organisation groups to assign the content to
+  """
+  orgGroups: [ID!]
+
+  """
+  The due date to finish the assignment
+  """
+  dueDate: Time
+
+  """
+  The status of assignment (ACTIVE / INACTIVE / EXPIRED)
+  """
+  status: AssignmentStatus
+}
+
+type AssignmentMemberStatistics {
+  """
+  The ID of the user
+  """
+  userId: ID!
+
+  """
+  Their username which is a concat of first name and last name
+  """
+  username: String!
+
+  """
+  CSV of group that the user belongs to
+  """
+  groupNames: String!
+
+  """
+  Total amount of time they have spent on their assignments
+  """
+  totalTimeConsumed: Int!
+
+  """
+  The number of content pieces they have completed
+  """
+  assignmentsCompleted: Int!
+
+  """
+  The number of content piece they have been assigned in total
+  """
+  assignmentsInTotal: Int!
+
+  """
+  Average completion rate of the assigned content
+  """
+  avgCompletionRate: Float!
+}
+
+input AssignmentsFilter {
+  limit: Int!
+  offset: Int!
+  status: [AssignmentStatus!]
+  id: ID
+  title: String
+
+  """
+  Note: Assignment state filter only works for user obj as parent
+  """
+  state: AssignmentState
+}
+
+enum AssignmentState {
+  VIEWED
+  NEW
+}
+
+enum AssignmentStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+type AudioFile {
+  id: ID!
+  uri: String!
+  length: Uint32!
+  sizeInBytes: Uint64!
+  contentType: String!
+  filename: String!
+  originalName: String!
+  createdAt: Time!
+  mediaType: String
+}
+
+type AuthenticationResponse {
+  """
+  The JWT access token that should be used in sub-sequence api requests to authenticate the user
+  """
+  jwt: String!
+
+  """
+  The user ID
+  """
+  userId: ID!
+
+  """
+  If the authentication is unsuccessful this message will contain the reason why
+  """
+  message: String!
+
+  """
+  If the request was successful
+  """
+  success: Boolean!
+
+  """
+  If this is the first time a user logs into the platform.
+
+  This is generally used in conjunction with 3rd party authentication so that we know if they should
+  proceed with the onboarding process.
+  """
+  newAccount: Boolean!
+
+  """
+  Finished registration represents if the user has finished the registration process
+
+  For tigerhall teams this represents if the user has selection a subscription plan interval and provided
+  the credit card credentials for the initial subscription/trial
+  """
+  finishedRegistration: Boolean!
+}
+
+enum CanvasType {
+  ONBOARDING
+}
+
+type Category {
+  id: ID!
+
+  """
+  Name of the category
+  """
+  name: String!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+
+  """
+  Image representing the category
+  """
+  image: Image
+
+  """
+  Experts that specialise in this category
+  """
+  experts(filter: ExpertFilter, sorting: SortOrdering): ExpertCollection!
+
+  """
+  Connent associated to this categorys
+  """
+  contents(filter: ContentCardsFilter!): ContentConnection!
+
+  """
+  Which organisation this category belongs to
+  """
+  organisation: Organisation
+
+  """
+  Which organisation group this category belongs to
+  """
+  organisationGroups: [OrganisationGroup!]!
+
+  """
+  The index of this category if it belongs to specific org.
+  The org categories index can be modified via retool|backoffice.
+  """
+  index: Int
+}
+
+type CategoryConnection {
+  meta: PageInfo!
+  edges: [Category!]!
+}
+
+input CategoryFilter {
+  limit: Int
+  offset: Int
+  hasOrganisationID: Boolean
+  organisationID: [ID!]
+  organisationGroups: [ID!]
+}
+
+input CategoryIndexInput {
+  categoryId: ID!
+  name: String!
+  organisationId: ID!
+  index: Int!
+}
+
+input CategoryInput {
+  name: String!
+  image: ID
+  organisationID: ID
+  organisationGroups: [ID!]
+}
+
+type Chapter {
+  name: String!
+  index: Int!
+  pages: [String!]!
+  language: String
+}
+
+input ChapterInput {
+  name: String!
+  index: Int!
+  pages: [String!]!
+  language: String
+}
+
+type Chat {
+  """
+  This ID actually refers to the object the chat refers to (Might change this in the future)
+  """
+  id: ID!
+
+  """
+  The last message the chat has been sent
+  """
+  lastMessage: ChatMessage
+
+  """
+  If the user has unread messages
+  """
+  hasUnreadMessages: Boolean!
+
+  """
+  When the user last checked the chat, this is triggered when the frontend subscribes to new chat messages
+  """
+  lastViewed: Time
+
+  """
+  Retrieve all of the messages for this chat
+  """
+  messages(pagination: CursorPaginationInput): ChatMessageConnection!
+  notificationPreference(type: NotificationType!): NotificationPreferenceState!
+}
+
+type ChatEdge {
+  cursor: String!
+  message: ChatMessage!
+}
+
+type ChatMessage {
+  id: ID!
+  user: User!
+  message: String!
+  deletedAt: Time
+  updatedAt: Time!
+  createdAt: Time!
+  chat: Chat!
+}
+
+type ChatMessageConnection {
+  meta: CursorInfo!
+  edges: [ChatEdge!]!
+}
+
+input ClickAnalyticsInput {
+  query: String!
+  documentID: String!
+  requestID: String
+  tags: [String!]
+}
+
+type Cohort {
+  id: ID!
+  name: String!
+  learningPath: LearningPath!
+  createdBy: User!
+  createdAt: Time!
+  updatedAt: Time!
+  deleted: Boolean
+  inviteStatus: CohortInviteStatus!
+  status: CohortStatus! @deprecated(reason: "Use inviteStatus instead")
+  users(filter: CohortFilter, pagination: CursorPaginationInput): CohortUserConnection!
+  timeline: [Timeline!]!
+}
+
+type CohortConnection {
+  meta: CursorInfo!
+  edges: [CohortEdge!]!
+}
+
+type CohortEdge {
+  cursor: String!
+  cohort: Cohort!
+}
+
+input CohortFilter {
+  """
+  Deprecated: Use the inviteStatus filter instead to find the ongoing cohorts
+  """
+  status: [CohortStatus!]
+  inviteStatus: [CohortInviteStatus!]
+  limit: Int
+  search: String
+}
+
+enum CohortInviteStatus {
+  ACCEPTED
+  REJECTED
+  PENDING
+}
+
+input CohortInviteUserListFilter {
+  searchByName: String
+}
+
+enum CohortStatus {
+  ONGOING
+  FINISHED
+}
+
+type CohortUser {
+  lastInvitedAt: Time!
+  nudgeEnabled: Boolean!
+  status: CohortInviteStatus!
+  user: User!
+}
+
+type CohortUserConnection {
+  meta: CursorInfo!
+  edges: [CohortUserEdge!]!
+}
+
+type CohortUserEdge {
+  cursor: String!
+  cohortUser: CohortUser!
+}
+
+enum CollectionType {
+  LEARNING_PATH
+  CURATED_LIST
+}
+
+type Comment {
+  id: ID!
+  user: User!
+  parent: Comment
+
+  """
+  To be deprecated: Use raw text instead
+  """
+  comment: String!
+  numberOfLikes: Int!
+  numberOfReplies: Int!
+  lastReply: Comment
+  deletedAt: Time
+  updatedAt: Time!
+  createdAt: Time!
+  content: ContentCard
+  replies(limit: Int, beforeCursor: String, afterCursor: String): CommentCursorConnection!
+
+  """
+  Retrieve all the users who liked a specific comment
+  """
+  usersLikedTheComment(limit: Int!, offset: Int!, sorting: SortOrdering): UserCollection!
+
+  """
+  This presents if the user has rated the comment
+  """
+  userCommentRating: CommentRating!
+  belongTo: CommentableContent!
+
+  """
+  parsed comment with mentions support
+  """
+  rawText: String!
+
+  """
+  Information about the users mentioned in the comment
+  """
+  mentions: [Mention]
+}
+
+union CommentableContent = FeedActivity | Ebook | Event | Podcast | Stream | LearningPath
+
+type CommentCursorConnection {
+  edges: [CommentEdge!]!
+  meta: CursorInfo!
+}
+
+type CommentEdge {
+  cursor: String!
+  comment: Comment!
+}
+
+input CommentFilter {
+  """
+  The number of items to return
+  """
+  limit: Int!
+
+  """
+  Retrieve activities that happened before this timestamp
+  """
+  before: String
+
+  """
+  Retrieve actiites that happened after this timestamp
+  """
+  after: String
+}
+
+enum CommentRating {
+  LIKE
+  UNDETERMINED
+}
+
+enum CommentType {
+  CONTENT
+  FEED
+}
+
+"""
+Content that can be consumed
+"""
+union ConsumableContent = Ebook | Podcast | Stream | LearningPath
+
+type ConsumableContentCollection {
+  meta: PageInfo!
+  edges: [ConsumableContent!]!
+}
+
+input ConsumableContentFilter {
+  limit: Int!
+  offset: Int!
+}
+
+"""
+This presents all the content the user can consume
+"""
+union Content = Ebook | Event | Podcast | Stream
+
+"""
+Old system for content cards
+
+Deprecated: should use one of Content, SearchableContent or Consumable
+"""
+union ContentCard = Ebook | Event | Podcast | Stream | Expert | LearningPath
+
+input ContentCardsFilter {
+  """
+  Retrieve content by a specific set of content ids
+  """
+  ids: [ID!]
+
+  """
+  Filter by the specified keywords
+  """
+  keywords: String
+
+  """
+  A number of predefined filters for a user to specify
+  """
+  selection: ContentSelection
+
+  """
+  Selected categories
+  """
+  categories: [String!]
+
+  """
+  Select experts
+  """
+  experts: [String!]
+
+  """
+  Filter on a specific content type
+  """
+  types: [ContentType!]
+
+  """
+  Filter on specific entry levels
+  """
+  entryLevels: [EntryLevelValue!]
+  limit: Int
+  offset: Int
+
+  """
+  Only include recently published pages
+  """
+  recent: Boolean
+
+  """
+  If experts should be included on the content
+
+  Deprecated: Specify the explicit types you want in the types field
+  """
+  includeExperts: Boolean
+
+  """
+  Language filter to filter content by language
+  """
+  languages: [String!]
+
+  """
+  If expert is able to create livestream
+  """
+  isAbleToLivestream: Boolean
+
+  """
+  Include unpublished content, can only be set to true as an org admin or tigerhall admin account
+  """
+  includeDrafts: Boolean
+
+  """
+  If the included experts should be a mentor
+  """
+  isMentor: Boolean
+
+  """
+  Filter on the length of the content
+  """
+  duration: IntRangeFilter
+
+  """
+  If the content included should be org specific
+  """
+  orgSpecific: Boolean
+
+  """
+  Filter based on the creation time of the content
+  """
+  createdAt: TimeRangeFilter
+
+  """
+  Filter for contents that are not in the org categories
+  """
+  excludeOrgCategories: Boolean
+}
+
+enum ContentCardsSorting {
+  TRENDING
+  UPDATED_AT
+  PUBLISHED_AT
+  MY_USER_ACTIVITY
+  BOOKMARKED_AT
+  FINISHED_AT
+  LAST_OPENED_AT
+  WEEKLY_TRENDING
+  RATING
+}
+
+type ContentConnection {
+  meta: PageInfo!
+  edges: [ContentCard!]!
+}
+
+type ContentRating {
+  id: ID!
+  user: User!
+  rating: Float!
+  review: String
+  vote: ContentVote!
+  content: ContentCard!
+  createdAt: Time!
+  updatedAt: Time
+}
+
+type ContentRatingConnection {
+  meta: PageInfo!
+  edges: [ContentRating!]!
+}
+
+input ContentRatingInput {
+  rating: Float!
+  review: String
+  contentId: String!
+}
+
+type ContentSegment {
+  header: String!
+  paragraph: String!
+}
+
+input ContentSegmentInput {
+  header: String!
+  paragraph: String!
+}
+
+enum ContentSelection {
+  FOR_ME
+  ONGOING
+  BOOKMARKED
+  ATTENDED
+  UPCOMING
+  FINISHED
+  MY_EXPERTS
+  FAVORITES
+  TO_CONSUME
+  DAILY_GOALS
+  FREE
+  ORGANISATION_CONTENT
+}
+
+enum ContentType {
+  EBOOK
+  PODCAST
+  EVENT
+  EXPERT
+  STREAM
+  LEARNING_PATH
+  CATEGORY
+  LIFE_GOAL
+}
+
+type ContentUserNote {
+  id: ID!
+  user: User!
+  contentCard: ContentCard!
+  headline: String!
+  body: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+input ContentUserNoteFilter {
+  limit: Int!
+  offset: Int!
+}
+
+enum ContentVote {
+  UPVOTE
+  DOWNVOTE
+  UNDETERMINED
+}
+
+type Coordinates {
+  lat: String!
+  lon: String!
+}
+
+input CoordinatesInput {
+  lat: String!
+  lon: String!
+}
+
+type Coupon {
+  code: String!
+  usedCharges: Int!
+  remainingCharges: Int!
+  restrictedContent: String
+  percentOff: Int!
+  duration: String!
+  durationInMonths: Int
+  restrictedSubscriptionLevel: SubscriptionLevel
+  restrictedSubscriptionDuration: Int
+  organisationId: ID
+  organisation: Organisation
+  userId: String
+  user: User
+  restrictedToFirstTimeUser: Boolean
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type CouponConnection {
+  edges: [Coupon!]!
+  meta: PageInfo!
+}
+
+input CouponFilter {
+  limit: Int
+  offset: Int
+  code: String
+  organisationId: String
+}
+
+input CouponInput {
+  code: String!
+  remainingCharges: Int!
+  duration: String!
+  durationInMonths: Int
+  restrictedContent: String
+  percentOff: Int!
+  organisationId: String
+  restrictedSubscriptionLevel: String
+  restrictedSubscriptionDuration: Int
+  restrictedToFirstTimeUser: Boolean
+}
+
+input CreateCohortInput {
+  name: String!
+  learningPathId: ID!
+  users: [ID!]
+}
+
+input CreateContentUserNote {
+  headline: String!
+  body: String!
+}
+
+input CreateTeamsInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  company: String!
+  password: String!
+}
+
+type CreateTeamsResult {
+  user: User!
+  auth: AuthenticationResponse!
+  organisation: Organisation!
+}
+
+input CreateUserInput {
+  email: String!
+  password: String!
+  firstName: String!
+  lastName: String!
+  company: String
+  joiningReason: String
+
+  """
+  facebookLink represents facebook profile url
+  """
+  facebookLink: String
+
+  """
+  twitterHandle represents twitter handle name
+  """
+  twitterHandle: String
+
+  """
+  twitterHandle represents instagram handle name
+  """
+  instagramHandle: String
+
+  """
+  linkedinLink represents linkedin profile url
+  """
+  linkedinLink: String
+  websiteLink: String
+  biography: String
+}
+
+type CurrentlyFeaturedContent {
+  content: ContentCard
+  config: FeaturedContent
+}
+
+type CursorInfo {
+  nextCursor: String!
+  hasNext: Boolean
+  prevCursor: String!
+  hasPrev: Boolean
+}
+
+input CursorPaginationInput {
+  beforeCursor: String
+  afterCursor: String
+  limit: Int
+}
+
+enum DeviceOperation {
+  ADD
+  REMOVE
+}
+
+type Ebook {
+  id: ID!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+  name: String!
+  preamble: String!
+  image: Image
+  readingTime(language: String): Int @deprecated(reason: "Use length instead")
+  length(language: String): Int
+  entryLevel: EntryLevelValue!
+  isFree: Boolean! @deprecated(reason: "No longer applicable")
+  isFeatured: Boolean!
+  contentSegments: [ContentSegment!]!
+
+  """
+  Experts that are part of this ebook
+  """
+  experts: [Expert!]!
+
+  """
+  Content categories related to this ebook
+  """
+  categories: [Category!]!
+
+  """
+  Learning paths that include this content piece
+  """
+  learningPaths(filter: LearningPathFilter!, sorting: SortOrdering): LearningPathConnection!
+
+  """
+  The actual chapters of the ebook
+  """
+  chapters(language: String): [Chapter!]!
+
+  """
+  The users current progress within the book
+  """
+  userContentTracking: UserContentTracking!
+  organisation: Organisation
+  organisationGroups: [OrganisationGroup!]!
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: Time
+  publishedAt(language: String): Time
+
+  """
+  Audio available languages on the ebook
+  """
+  audioAvailableLanguages: [Language!]!
+
+  """
+  Episodes associated with the ebook
+  """
+  episodes(language: String): EbookEpisode!
+
+  """
+  Retrieve content that is related to this content piece
+  """
+  relatedContent(limit: Int!): [ContentCard!]!
+
+  """
+  Averge rating from 1-5 the content piece has received
+  """
+  rating: Float!
+
+  """
+  The number of reviews the content piece as received
+  """
+  numberOfReviews: Int!
+
+  """
+  The amount of time spent on by users
+  """
+  activityCount: Int! @deprecated(reason: "Use timeSpentOnByUsers insteads")
+
+  """
+  The amount of time spent on by users
+  """
+  timeSpentOnByUsers: Int!
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]!
+
+  """
+  The number of upvotes the content piece has received
+  """
+  upvoteCount: Int!
+
+  """
+  The number of downvotes the content piece has received
+  """
+  downvoteCount: Int!
+
+  """
+  Tells whether content is rated by user or not
+  """
+  contentRatingByUser: ContentVote!
+
+  """
+  Comments on content
+  """
+  comments(limit: Int, beforeCursor: String, afterCursor: String): CommentCursorConnection!
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+  numberOfComments: Int!
+  type: ContentType!
+
+  """
+  Available languages on the ebook
+  """
+  availableLanguages: [Language!]!
+
+  """
+  Whether any tranlsation job is running for this ebook or not
+  """
+  translationOngoing: Boolean!
+  notificationPreference(type: NotificationType!): NotificationPreferenceState!
+}
+
+input EbookAudioInput {
+  episodes: [EpisodeInput]!
+  length: Int
+  publishedAt: Time
+}
+
+type EbookConnection {
+  meta: PageInfo!
+  edges: [Ebook!]!
+}
+
+type EbookEpisode {
+  episodes: [Episode!]!
+  language: String!
+  publishedAt: Time
+  length: Int
+}
+
+input EbookFilter {
+  limit: Int
+  offset: Int
+  name: String
+  experts: [ID!]
+  categories: [ID!]
+  entryLevel: [EntryLevelValue!]
+  organisationID: [ID!]
+  organisationGroups: [ID!]
+  onlyRated: Boolean
+  languages: [String!]
+
+  """
+  includeSensitiveContent filter the content basis of sensitivity of content
+  """
+  includeSensitiveContent: Boolean
+  includeDeleted: Boolean
+}
+
+input EbookInput {
+  name: String!
+  preamble: String!
+  image: ID!
+  readingTime: Int!
+  experts: [ID!]
+  categories: [ID!]
+  contentSegments: [ContentSegmentInput!]!
+  entryLevel: EntryLevelValue!
+  chapters: [ChapterInput!]
+  organisationID: ID
+  organisationGroups: [ID!]
+  publishedAt: Time
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]
+
+  """
+  Tags represents hash tags which will be attached to content for better search and better content delivery
+  """
+  tags: [String!]
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+}
+
+enum EntryLevelValue {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+type Episode {
+  name: String!
+  order: Int!
+  audio: AudioFile
+  audioId: String!
+  language: String
+}
+
+input EpisodeInput {
+  name: String!
+  audio: String!
+  order: Int!
+  language: String
+}
+
+type Event {
+  id: ID!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+
+  """
+  Name of the event
+  """
+  name: String!
+
+  """
+  Short description of the event
+  """
+  preamble: String!
+
+  """
+  The image that portrais this event
+  """
+  image: Image
+
+  """
+  The levelt of the content being discussed such as beginner, advanced, experts etc
+  """
+  entryLevel: EntryLevelValue!
+
+  """
+  Which type of event this is
+  """
+  eventType: EventType!
+
+  """
+  The max number of attendees an event can have
+  """
+  maxAttendees: Int!
+
+  """
+  If the event is currently featured
+  """
+  isFeatured: Boolean! @deprecated(reason: "We don't know why this exists")
+
+  """
+  If the event is free
+  """
+  isFree: Boolean! @deprecated(reason: "No longer applicable")
+
+  """
+  Extended information about the event
+  """
+  contentSegments: [ContentSegment!]!
+
+  """
+  The price of a single ticket purchase
+  """
+  ticketPrice: Int! @deprecated(reason: "We no longer support single ticket purcases in the app")
+
+  """
+  Single purchase ticket currency
+  """
+  ticketCurrency: String! @deprecated(reason: "We no longer support single ticket purcases in the app")
+
+  """
+  Users on the wait list
+  """
+  waitList(withHidden: Boolean!): [EventWaitListAttendee!]!
+
+  """
+  If the wait list is enabled
+  """
+  waitListEnabled: Boolean!
+
+  """
+  If the waitlist is enabled then this is the questions the users need to reply to when signing up
+  """
+  questionnaire: String!
+
+  """
+  The required subscription level to attend this event
+
+  Our more expensive events such as dinners with experts cost us more money to arrange so we need to restrict
+  this to users that are paying for it.
+  """
+  requiredSubscriptionLevel: SubscriptionLevel!
+
+  """
+  Experts that are hosting this event
+  """
+  experts: [Expert!]!
+
+  """
+  Categories related to this event
+  """
+  categories: [Category!]!
+
+  """
+  Trails related to this event
+  """
+  learningPaths(filter: LearningPathFilter!, sorting: SortOrdering): LearningPathConnection!
+
+  """
+  User content tracking related to the event
+  """
+  userContentTracking: UserContentTracking!
+
+  """
+  Geo location for opening google maps etc
+  """
+  location: Location
+
+  """
+  A shorter version of the location that we use to display in the app
+  """
+  locationDisplayName: String
+
+  """
+  If the event is a online event
+  """
+  isOnline: Boolean!
+
+  """
+  If the event is online the conference url should be provided
+  """
+  conferenceUrl: String
+
+  """
+  What time the event starts
+  """
+  startsAt: Time
+
+  """
+  What time the event is finished
+  """
+  endsAt: Time
+
+  """
+  When the event should be published
+  """
+  publishedAt: Time
+
+  """
+  The attendees of an event
+  """
+  attendees: [User]!
+
+  """
+  The number of users attending an event
+  """
+  attendeeCount: Int!
+
+  """
+  Which organisation this event is available for. If no organisation then it's a public event
+  """
+  organisation: Organisation
+
+  """
+  Which groups within an organisation this event is available for.
+  """
+  organisationGroups: [OrganisationGroup!]!
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]!
+
+  """
+  Retrieve content that is related to this content piece
+  """
+  relatedContent(limit: Int!): [ContentCard!]!
+
+  """
+  When the event was created
+  """
+  createdAt: Time!
+
+  """
+  When the event was last updated
+  """
+  updatedAt: Time!
+
+  """
+  When the event was deleted
+  """
+  deletedAt: Time
+
+  """
+  The number of upvotes the content piece has received
+  """
+  upvoteCount: Int!
+
+  """
+  The number of downvotes the content piece has received
+  """
+  downvoteCount: Int!
+
+  """
+  Tells whether content is rated by user or not
+  """
+  contentRatingByUser: ContentVote!
+
+  """
+  Comments on content
+  """
+  comments(limit: Int, beforeCursor: String, afterCursor: String): CommentCursorConnection!
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+  numberOfComments: Int!
+  type: ContentType!
+
+  """
+  stream will only be available if eventType is LIVESTREAM
+  """
+  stream: Stream
+  notificationPreference(type: NotificationType!): NotificationPreferenceState!
+}
+
+type EventConnection {
+  meta: PageInfo!
+  edges: [Event!]!
+}
+
+input EventFilter {
+  """
+  Pagination limit, defaults to 20
+  """
+  limit: Int
+
+  """
+  Pagination offset, defaults to 0
+  """
+  offset: Int
+
+  """
+  Filter by the event name
+  """
+  name: String
+
+  """
+  Filter BY specific experts
+  """
+  experts: [String!]
+
+  """
+  Filter by specific categories
+  """
+  categories: [String!]
+
+  """
+  Filter by specific content levels
+  """
+  entryLevel: [EntryLevelValue!]
+
+  """
+  Filter by events that require a specific subscription level
+  """
+  subscriptionLevel: String
+
+  """
+  Use this to filter events that start after the specified time
+  """
+  startsAt: Time
+
+  """
+  Use this to filter events that start between the range of time
+  """
+  startsAtRange: TimeRangeFilter
+
+  """
+  Use this to filter between different type of events to show
+  """
+  eventType: [EventType!]
+
+  """
+  Use this to filter events that end after the specified time
+  """
+  endsAt: Time
+
+  """
+  Only show events that are in the future
+  """
+  onlyFutureEvents: Boolean
+
+  """
+  Filter by specific organisations
+  """
+  organisationID: [ID!]
+
+  """
+  Filter by specific organisation groups
+  """
+  organisationGroups: [ID!]
+
+  """
+  includeSensitiveContent filter the content basis of sensitivity of content
+  """
+  includeSensitiveContent: Boolean
+  includeDeleted: Boolean
+}
+
+input EventInput {
+  """
+  If the event is free to attend
+  """
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+
+  """
+  The name of the event
+  """
+  name: String!
+
+  """
+  A short description on what the event is about
+  """
+  preamble: String!
+
+  """
+  Which image ID to use
+  """
+  image: ID!
+
+  """
+  Geo spatial data for physical events
+  """
+  location: LocationInput
+
+  """
+  A customed named location name
+  """
+  locationDisplayName: String
+
+  """
+  Content segments are just another way of structuring more information about the content
+  """
+  contentSegments: [ContentSegmentInput!]!
+
+  """
+  What kind of event this is
+  """
+  eventType: EventType!
+
+  """
+  How much each entry ticket costs for users without a subscription
+  """
+  ticketPrice: Int @deprecated(reason: "We no longer support single event ticket purchases")
+
+  """
+  Which currency to charge the users in
+  """
+  ticketCurrency: String @deprecated(reason: "We no longer support single event ticket purchases")
+
+  """
+  The max number of attendees that can join this event
+  """
+  maxAttendees: Int!
+
+  """
+  If the wait list should be enabled, if it is then when users sign up they get put on a wait list
+  """
+  waitListEnabled: Boolean!
+
+  """
+  If the wait list is enabled ths following question will be asked to the users to reply when signing up to the event
+  """
+  questionnaire: String!
+
+  """
+  If the event is a online event
+  """
+  isOnline: Boolean!
+
+  """
+  If the event is online the conference url should be provided
+  """
+  conferenceUrl: String
+  requiredSubscriptionLevel: String!
+
+  """
+  What time the event starts
+  """
+  startsAt: Time
+
+  """
+  What time the event is finished
+  """
+  endsAt: Time
+
+  """
+  When the event should be published
+  """
+  publishedAt: Time
+
+  """
+  Experts that will be hosting the event
+  """
+  experts: [ID!]!
+
+  """
+  Which categories/topics this event is associated with
+  """
+  categories: [ID!]!
+
+  """
+  What level of content will be discussed in the event
+  """
+  entryLevel: EntryLevelValue!
+
+  """
+  Which organisation this event is associated with
+  """
+  organisationID: ID
+
+  """
+  Which organistion groups that can see the event
+  """
+  organisationGroups: [ID!]
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]
+
+  """
+  Tags represents hash tags which will be attached to content for better search and better content delivery
+  """
+  tags: [String!]
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+}
+
+enum EventType {
+  ASK_ME_ANYTHING
+  SMALL_GROUP_SESSION
+  CONFERENCE
+  WEBINAR
+  VIRTUAL_EVENT
+  LIVESTREAM
+  MEET_IN_PERSON
+}
+
+type EventWaitListAttendee {
+  id: ID!
+  user: User!
+  event: Event!
+  isAttending: Boolean!
+  questionnaireResponse: String!
+  createdAt: Time!
+  updatedAt: Time!
+  hiddenAt: Time
+}
+
+type Expert {
+  """
+  Identifier of the expert
+  """
+  id: ID!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+
+  """
+  The email of the expert
+  """
+  email: String!
+
+  """
+  The title of the expert
+  """
+  title: String!
+
+  """
+  Their first name
+  """
+  firstName: String!
+
+  """
+  Their last name
+  """
+  lastName: String!
+
+  """
+  Experts biography
+  """
+  biography: String!
+
+  """
+  Profile/Avatar picture
+  """
+  image: Image
+
+  """
+  If an expert is a mentor
+  """
+  isMentor: Boolean!
+
+  """
+  How much the mentor would charge for a session
+  """
+  mentorPriceText: String
+
+  """
+  If the mentor is available for mentoring this contains some brief information to their capabilities
+  """
+  mentorAvailableText: String
+
+  """
+  Deprecated
+  """
+  priority: Int!
+
+  """
+  A list of categories in which the expert is deemed an expert
+  """
+  categories: [Category!]!
+
+  """
+  If the current authenticated user is following this expert
+  """
+  isAuthenticatedUserFollowing: Boolean!
+
+  """
+  An organisation which the expert is associated to
+  """
+  organisation: Organisation
+
+  """
+  Which organisation group the expert is associated
+  """
+  organisationGroups: [OrganisationGroup!]!
+
+  """
+  If the expert is live this is the live stream ID
+  """
+  currentLiveStreamId: ID
+
+  """
+  Which user is associated to the expert, can only be access by the user it's self or an admin
+  """
+  user: User
+
+  """
+  The userID associated to the expert thats publicly available
+  """
+  userId: ID
+
+  """
+  The name of the company that the expert worked for
+  """
+  company: String
+
+  """
+  Retrieve content related in which the expert has been part of the creation
+  """
+  content(filter: ContentCardsFilter!, sorting: ContentCardsSorting!): ContentConnection!
+
+  """
+  When the expert was created
+  """
+  createdAt: Time!
+
+  """
+  When the expert was updated
+  """
+  updatedAt: Time!
+
+  """
+  Which regions the expert should be available in
+  """
+  regionRestrictions: [String!]
+
+  """
+  Count of content expert has created
+  """
+  contentCreatedCount: Int!
+}
+
+type ExpertCollection {
+  meta: PageInfo!
+  edges: [Expert!]!
+}
+
+input ExpertFilter {
+  """
+  The number of experts to return
+  """
+  limit: Int
+
+  """
+  Offset of the results return
+  """
+  offset: Int
+
+  """
+  Search for experts by name
+  """
+  name: String
+
+  """
+  Search for experts by email
+  """
+  email: String
+
+  """
+  Job title
+  """
+  jobTitle: String
+
+  """
+  Only return experts that offer mentorship session
+  """
+  isMentor: Boolean
+
+  """
+  That the expert profile has been associted to a user account
+  """
+  isAssociatedToUser: Boolean
+
+  """
+  Ensures that the experts have the permission to livestream
+  """
+  isAbleToLivestream: Boolean
+
+  """
+  Filter by categories associated to the experts
+  """
+  categories: [ID!]
+
+  """
+  Filter by life goals associated the categories
+  """
+  lifeGoals: [String!]
+
+  """
+  Only retrieve the experts that the authenticted user performing this request follows
+  """
+  followedByAuthenticatedUser: Boolean
+
+  """
+  Experts that belong to any of the organisations
+  """
+  organisationID: [ID!]
+
+  """
+  Experts that belong to a specific organisaiton group
+  """
+  organisationGroups: [ID!]
+}
+
+input ExpertInput {
+  """
+  The experts title
+  """
+  title: String!
+
+  """
+  The company the expert works at
+  """
+  company: String
+
+  """
+  The experts email address
+  """
+  email: String!
+
+  """
+  First name
+  """
+  firstName: String!
+
+  """
+  Last name
+  """
+  lastName: String!
+
+  """
+  Biography
+  """
+  biography: String!
+
+  """
+  Image ID
+  """
+  image: ID!
+
+  """
+  Array of category ids
+  """
+  categories: [ID!]!
+
+  """
+  If the expert is a mentor
+  """
+  isMentor: Boolean!
+
+  """
+  What price to show for mentorship
+  """
+  mentorPriceText: String
+
+  """
+  Where the mentor is available to mentor
+  """
+  mentorAvailableText: String
+  priority: Int!
+  organisationID: ID
+  organisationGroups: [ID!]
+
+  """
+  Which regions the expert should be available in
+  """
+  regionRestrictions: [String!]
+}
+
+type FeaturedContent {
+  id: ID!
+  isFree: Boolean! @deprecated(reason: "No longer applicable")
+  content: ContentCard
+  header: String!
+  paragraph: String!
+  image: Image
+  screen: String!
+  screenParams: Map!
+  linkToURL: String!
+  promotedFrom: String!
+  promotedUntil: String!
+  organisation: Organisation
+  organisationGroups: [OrganisationGroup!]!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type FeaturedContentConnection {
+  meta: PageInfo!
+  edges: [FeaturedContent!]!
+}
+
+input FeaturedContentFilter {
+  limit: Int
+  offset: Int
+  onlyVisible: Boolean
+}
+
+input FeaturedContentInput {
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+  contentId: String
+  contentType: ContentType
+  header: String
+  paragraph: String
+  image: ID
+  screen: String
+  screenParams: Map
+  linkToURL: String
+  promotedFrom: Time!
+  promotedUntil: Time!
+  organisationId: ID
+  organisationGroups: [ID!]
+}
+
+type FeedActivity {
+  id: ID!
+
+  """
+  What kind of activity was performed
+  """
+  type: FeedActivityType!
+
+  """
+  The author is the first person that performed the activity
+  """
+  author: User!
+
+  """
+  Other users that have performed the same action but after the initial "author"
+  """
+  contributors: [User!]!
+
+  """
+  A union of all the different content types that should match to the activity feed
+  """
+  content: FeedActivityContent!
+  numberOfLikes: Int!
+  numberOfComments: Int!
+
+  """
+  The comments for the specific activity
+  """
+  comments(limit: Int, beforeCursor: String, afterCursor: String): CommentCursorConnection!
+
+  """
+  If the currently authenticated user has liked the activity
+  """
+  likedByUser: Boolean!
+
+  """
+  When the activity was created
+  """
+  createdAt: Time!
+
+  """
+  When the activity was last updated
+  """
+  updatedAt: Time!
+}
+
+union FeedActivityContent = Ebook | Event | Podcast | Stream | Expert | LearningPath | Comment | User
+
+enum FeedActivityType {
+  COMMENT
+  REPLY_ON_COMMENT
+  FINISHED_CONTENT
+  RATED_CONTENT
+  FOLLOW_USER
+  NEWELY_PUBLISH_CONTENT
+}
+
+type FeedConnection {
+  edges: [FeedEdge!]!
+  meta: CursorInfo!
+}
+
+type FeedEdge {
+  cursor: String!
+  feed: FeedActivity!
+}
+
+input FeedFilter {
+  """
+  The number of items to return
+  """
+  limit: Int!
+
+  """
+  Retrieve activities that happened before this timestamp
+  """
+  beforeCursor: String
+
+  """
+  Retrieve actiites that happened after this timestamp
+  """
+  afterCursor: String
+
+  """
+  Only return specific types of activity feed
+  """
+  types: [FeedActivityType!]!
+}
+
+input FollowersFollowingFilter {
+  query: String
+  limit: Int!
+  offset: Int!
+  isExpert: Boolean
+  isAMemberOfSameOrganisation: Boolean
+}
+
+type FollowUserSuggestions {
+  edges: [User!]!
+  meta: PageInfo!
+}
+
+type GraphDataPoint {
+  label: String!
+  value: Int!
+}
+
+enum IdentityType {
+  LOGIN_GOOGLE
+  LOGIN_MICROSOFT
+}
+
+type Image {
+  id: ID!
+  uri: String!
+  width: Int!
+  height: Int!
+  sizeInBytes: Int!
+  blurHash: String!
+  contentType: String!
+  filename: String!
+  originalName: String!
+  alt: String!
+  organisationID: ID
+  createdAt: Time!
+}
+
+type ImageConnection {
+  meta: PageInfo!
+  edges: [Image!]!
+}
+
+input ImageFilter {
+  limit: Int
+  offset: Int
+  name: String
+  organisationID: [ID!]
+}
+
+input IntRangeFilter {
+  from: Int
+  until: Int
+}
+
+type Invitation {
+  id: ID!
+  user: User!
+  createdBy: User!
+  organisation: Organisation!
+  createdAt: Time!
+  expiresAt: Time!
+  acceptedAt: Time
+
+  """
+  Shows if the invitation is expired due to canceled by admin.
+  Only shown if invitation already passed the expiresAt.
+  """
+  expiredByAdmin: Boolean
+}
+
+type InvitationConnection {
+  meta: PageInfo!
+  edges: [Invitation!]!
+}
+
+input InvitationFilter {
+  limit: Int!
+  offset: Int!
+  userIds: [ID!]
+  createdByIds: [ID!]
+  organisationIds: [ID!]
+  createdAtRange: TimeRangeFilter
+  expiresAtRange: TimeRangeFilter
+  acceptedAtRange: TimeRangeFilter
+  expiredByAdmin: Boolean
+  accepted: Boolean
+}
+
+type IsCouponValid {
+  valid: Boolean!
+  message: String
+}
+
+type Language {
+  name: String!
+  code: String!
+}
+
+type LearningPath {
+  id: ID!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+  name: String!
+  preamble: String!
+  contentSegments: [ContentSegment!]!
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+  image: Image
+  ebooks: [Ebook!]! @deprecated(reason: "Use the `contentCards` field instead")
+  podcasts: [Podcast!]! @deprecated(reason: "Use the `contentCards` field instead")
+  events: [Event!]! @deprecated(reason: "Use the `contentCards` field instead")
+  streams: [Stream!]! @deprecated(reason: "Use the `contentCards` field instead")
+
+  """
+  All the content cards associated to the learning path exposed under a single field and correctly sorted
+  """
+  contentCards: [ContentCard!]!
+  categories: [Category!]!
+  featuredCategory: Category
+  featuredLifegoal: Lifegoal
+  sortOrder: [ID!]! @deprecated(reason: "The content returned from `contentCards` should already be correctly sorted")
+  organisation: Organisation
+  organisationGroups: [OrganisationGroup!]!
+  userCollectionTracking: UserCollectionTracking
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]!
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: Time
+  numberOfComments: Int!
+
+  """
+  If strict content progression is "true" then the content must be consumed in a serial fashion starting with the first
+  and ending with the last content piece
+  """
+  strictContentProgression: Boolean!
+
+  """
+  Retrieve the associated cohorts that are part of this learning path
+  """
+  cohorts(filter: LearningPathCohortFilter, pagination: CursorPaginationInput): CohortConnection
+
+  """
+  Pending cohort invites for user to accept/reject on the given learning path
+  """
+  pendingCohortInvites: Int!
+  type: ContentType!
+}
+
+input LearningPathCohortFilter {
+  limit: Int
+  inviteStatus: CohortInviteStatus
+}
+
+type LearningPathConnection {
+  meta: PageInfo!
+  edges: [LearningPath!]!
+}
+
+input LearningPathFilter {
+  limit: Int
+  offset: Int
+  name: String
+  keywords: String
+  categories: [ID!]
+  lifegoal: String
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+  organisationID: [ID!]
+  organisationGroups: [ID!]
+  includeDeleted: Boolean
+}
+
+input LearningPathInput {
+  name: String!
+  preamble: String!
+  contentSegments: [ContentSegmentInput!]
+  image: ID!
+  podcasts: [ID!]!
+  events: [ID!]!
+  ebooks: [ID!]!
+  streams: [ID!]!
+  categories: [ID!]!
+  featuredCategory: String
+  featuredLifegoal: String
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+  sortOrder: [ID!]!
+  organisationID: ID
+  organisationGroups: [ID!]
+
+  """
+  If not provided the existing value will be retained, else it controls if the content must be controlled in a serial
+  fashion or can be completed in any order
+  """
+  strictContentProgression: Boolean
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]
+}
+
+type Lifegoal {
+  id: ID!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+
+  """
+  Name of the life goal
+  """
+  name: String!
+
+  """
+  An emoji representation of the life goal
+  """
+  emoji: String
+
+  """
+  Associated categories
+  """
+  categories: [Category!]!
+
+  """
+  Image of the life goal, currently only used in the trail listing page
+  """
+  image: Image @deprecated(reason: "No longer used after the 1.13.9 release")
+
+  """
+  Small icon used in the old explore page
+  """
+  icon: Image @deprecated(reason: "No longer used after the 1.13.9 release")
+
+  """
+  If the life goal belongs to a specific organisation
+  """
+  organisation: Organisation
+
+  """
+  Experts that have content published content within this life goal or categories
+  """
+  experts: ExpertCollection!
+
+  """
+  Retrieve the learning paths associated with this life goal
+  """
+  learningPaths(filter: LearningPathFilter!, sorting: SortOrdering!): LearningPathConnection!
+
+  """
+  When it was created
+  """
+  createdAt: Time!
+
+  """
+  When it was last updated
+  """
+  updatedAt: Time!
+
+  """
+  The number of content pieces
+  """
+  contentCount: Int
+
+  """
+  isFollowing attribute verify life goal is followed by user or not
+  """
+  isFollowing: Boolean!
+}
+
+type LifegoalCollection {
+  meta: PageInfo!
+  edges: [Lifegoal!]!
+}
+
+input LifegoalFilter {
+  limit: Int
+  offset: Int
+  organisationID: [ID!]
+}
+
+input LifegoalInput {
+  """
+  Name of the life goal
+  """
+  name: String!
+
+  """
+  Emoji representation of the life goal
+  """
+  emoji: String!
+
+  """
+  Categories associated to the life goal
+  """
+  categories: [ID!]
+
+  """
+  Image ID
+  """
+  image: ID!
+
+  """
+  Image ID to use for the icon
+  """
+  icon: ID
+
+  """
+  If the life goal belongs to a specific organisation
+  """
+  organisationID: ID
+}
+
+"""
+LikeableContent represents activities which can be liked by like mutation
+"""
+union LikeableContent = FeedActivity | Comment
+
+enum LikeType {
+  COMMENT
+  FEED
+}
+
+"""
+If you filter by codes, coupons, userIds and orgIds it will be retrieve with `OR` logic
+and get all of those you input from stripe if they exist.
+"""
+input ListStripePromotionCodeInput {
+  isActive: Boolean
+
+  """
+  Note: if you want to search by list of codes or list of coupons, ensure that you pass the full (case sensitive)
+  codes or coupons
+  """
+  codes: [String!]
+  coupons: [String!]
+  userIds: [String!]
+  organisationIds: [String!]
+  createdAfter: Time
+  createdBefore: Time
+}
+
+input LiveStreamInput {
+  """
+  Name of the livestream
+  """
+  name: String!
+
+  """
+  If the stream should only be visible by a single organisation
+  """
+  organisationID: ID
+
+  """
+  If only specific groups within the organisation should see the video
+  """
+  organisationGroups: [ID!]
+}
+
+type Location {
+  name: String!
+  city: String!
+  coordinates: Coordinates!
+}
+
+input LocationInput {
+  name: String!
+  city: String!
+  coordinates: CoordinatesInput!
+}
+
+scalar Map
+
+type Mention {
+  mentionType: MentionType!
+
+  """
+  Holds the placement of the mention in the comment
+  """
+  index: Int!
+  targetType: TargetType!
+
+  """
+  ID of the target. Can be user or an Organisation
+  """
+  targetId: ID!
+  target: Mentioned!
+}
+
+union Mentioned = User
+
+input MentionInput {
+  targetId: ID!
+  targetType: TargetType!
+  index: Int!
+}
+
+enum MentionType {
+  FEED
+  COMMENT
+}
+
+type MonthlyPromotedLearningPath {
+  learninPath: LearningPath
+  description: String!
+}
+
+type MSteamsChannelTabFollowTopic {
+  id: ID!
+  tenantID: ID!
+  teamID: String!
+  channelID: String!
+  topics: [Lifegoal!]!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type Mutation {
+  """
+  convertEbookTextToAudio converts ebooks chapters text to audio in provided voice type
+  """
+  convertEbookTextToAudio(id: ID!, voiceType: SpeechVoiceType!): Boolean!
+
+  """
+  For the users in an organisation we need to trigger the onboarding canvas
+  """
+  triggerBrazeCanvas(organisationId: ID!, canvasType: CanvasType!, groupIds: [ID!]!, canvasId: ID!): Boolean!
+
+  """
+  This will return if the provided version of the mobile app (WITHOUT CodePUSH) is up to date
+  """
+  isAppUp2Date(appVersion: String!): Boolean!
+  createCoupon(input: CouponInput): Coupon
+  updateCoupon(code: String!, input: CouponInput): Coupon
+  deleteCoupon(code: String!): NoContent
+  consumeCoupon(code: String!): SubscriptionModel
+  userTrackContentProgress(id: String!, type: ContentType!, data: TrackingData!): ContentCard!
+  userTrackContentOpened(id: String!, type: ContentType!): ContentCard!
+  userTrackContentToggleFinished(id: String!, type: ContentType!): ContentCard!
+  userTrackContentToggleBookmarked(id: String!, type: ContentType!): ContentCard!
+  userTrackContentToggleAttending(id: String!): ContentCard!
+  createFeaturedContent(input: FeaturedContentInput): FeaturedContent
+  updateFeaturedContent(id: String!, input: FeaturedContentInput): FeaturedContent
+  deleteFeaturedContent(id: String!): NoContent!
+
+  """
+  Toggle following a collection allows the user to toggle the state of following a collection
+
+  The third variable "force" is optional and if provided will set the toggle state to that value
+  """
+  userToggleFollowCollection(id: String!, collectionType: CollectionType!, force: Boolean): UserCollectionTracking
+  userMarkCollectionAsFinished(collection: UserCollectionTrackingInput!): NoContent!
+  upsertContentRating(input: ContentRatingInput!): NoContent!
+  createCategory(input: CategoryInput): Category
+  updateCategory(id: String!, input: CategoryInput): Category
+  deleteCategory(id: String!): String!
+  updateCategoryIndex(input: [CategoryIndexInput!]!): NoContent!
+  createEbook(input: EbookInput!): Ebook
+  updateEbook(id: String!, input: EbookInput!): Ebook
+  deleteEbook(id: String!): String!
+  upsertEbookChaptersAndAudio(
+    ebookId: ID!
+    language: String!
+    chaptersInput: UpsertEbookChaptersInput
+    audioInput: EbookAudioInput
+  ): Ebook
+  createPodcast(input: PodcastInput!): Podcast
+  updatePodcast(id: String!, input: PodcastInput!): Podcast
+  deletePodcast(id: String!): String!
+  upsertPodcastAudioAndTranscript(
+    podcastId: ID!
+    language: String!
+    audio: PodcastAudioInput
+    transcript: PodcastTranscriptInput
+  ): Podcast!
+  createEvent(input: EventInput!): Event
+  updateEvent(id: String!, input: EventInput!): Event
+  deleteEvent(id: String!): String!
+  createAssignment(organisationID: ID!, input: AssignmentInput): Assignment!
+  updateAssignment(id: ID!, input: AssignmentInput): Assignment!
+  deleteAssignment(id: ID!): Boolean!
+  updateAssignmentStatus(id: ID!, status: AssignmentStatus!): Assignment!
+  markAssignmentsAsViewed(assignmentIds: [ID!]!): NoContent!
+  applyToEventWaitList(input: ApplyToEventWaitListInput): EventWaitListAttendee!
+  toggleWaitListAttendee(id: String!): EventWaitListAttendee!
+  removeAttendee(userId: String!, eventId: String!): Event
+  cancelWaitlistApplication(eventId: String!): Event
+
+  """
+  Connect a user with a mentor
+  """
+  requestMentorship(expertId: String!, userId: String): NoContent!
+  toggleContentAsFree(id: ID!, contentType: ContentType!): NoContent!
+    @deprecated(reason: "we no longer support free content")
+  toggleLearningPathAsFree(id: ID!): NoContent! @deprecated(reason: "we no longer support free content")
+  createLifegoal(input: LifegoalInput): Lifegoal
+  updateLifegoal(id: String!, input: LifegoalInput): Lifegoal
+  deleteLifegoal(id: String!): NoContent!
+  createLearningPath(input: LearningPathInput): LearningPath
+  updateLearningPath(id: String!, input: LearningPathInput): LearningPath
+  deleteLearningPath(id: String!): NoContent!
+  createOrganisation(input: OrganisationInput!): Organisation
+  updateOrganisation(id: String!, input: OrganisationInput!): Organisation
+  deleteOrganisation(id: String!): NoContent!
+  updateCanvasOnboardingID(id: ID!, canvasOnboardingID: ID!): Organisation!
+  organisationAddUser(
+    userId: String!
+    organisationId: String!
+    role: OrganisationRole!
+    level: SubscriptionLevel!
+  ): NoContent
+
+  """
+  Accepts either userId or email of the user to be removed.
+  If both are present, the userId will be used as default.
+  """
+  organisationRemoveUser(userId: String, email: String, organisationId: String!): NoContent
+  organisationRemoveMultiUser(users: [AddUserRequest!]!, organisationId: ID!): [AddUserResponse!]
+  organisationAdminNudgeUser(userId: ID!, organisationId: ID!): NoContent
+  organisationAdminNudgeAllUsers(organisationId: ID!): NoContent
+  organisationExportMainStatistics(orgId: ID!, filter: OrgStatisticsFilter!): NoContent!
+  organisationExportAssignmentStatistics(orgId: ID!): NoContent!
+  organisationExportUserAssignmentStatistics(orgId: ID!, userId: ID!): NoContent!
+  createOrganisationGroup(orgId: String!, input: OrganisationGroupInput!): OrganisationGroup
+  updateOrganisationGroup(id: String!, input: OrganisationGroupInput!): OrganisationGroup
+  deleteOrganisationGroup(id: String!): NoContent
+  organisationGroupAddUser(userId: String!, groupId: String!): NoContent
+  organisationGroupAddMultipleUser(userIds: [String!]!, groupId: String!): NoContent
+  organisationGroupRemoveUser(userId: String!, groupId: String!): NoContent
+  organisationGroupAddMultiUser(users: [AddUserRequest!]!, groupId: ID!): [AddUserResponse!]
+  organisationGroupRemoveMultiUser(users: [AddUserRequest!]!, groupId: ID!): [AddUserResponse!]
+
+  """
+  Import users in a batch
+
+  If the users are not added to the organisation using the batch import it is because they
+  most likely already exist in the system. And for security purposes they cannot be added to the organisation
+  by a mear user.
+  """
+  organisationImportUsers(
+    orgId: String!
+    groupId: String
+    subscription: SubscriptionLevel @deprecated(reason: "will inherit from org subscription info")
+    users: [OrganisationUserImport!]!
+  ): [OrganisationUserImportResponse!]
+
+  """
+  Join an organisation by using an invite link with a token
+  """
+  organisationJoinViaInviteLink(token: ID!, user: CreateUserInput): Boolean!
+  createUser(input: CreateUserInput): User
+
+  """
+  Update user is called from the application to update the users profile
+  """
+  updateUser(id: String!, input: UpdateUserInput): User
+
+  """
+  Update a user as an org admin gives the ability to promote to a livestream host and thinkfluencer
+  """
+  updateUserAsOrgAdmin(id: ID!, input: UpdateUserAsOrgAdmin!): User!
+
+  """
+  Introduce a new method that allows us to update a user and thinkfluencer settings in the same request
+  """
+  updateUserAsAdmin(id: ID!, input: UpdateExpertUserInput!): User!
+
+  """
+  Delete a user from the platform
+  """
+  deleteUser(id: String, reasons: [String!]): NoContent!
+
+  """
+  Update a users life goals
+  """
+  updateUserLifegoals(lifeGoals: [ID!]!): NoContent!
+
+  """
+  Manage the service associated to a user for push notifications
+  """
+  manageUserDevices(operation: DeviceOperation!, deviceId: String!): NoContent!
+  resetPasswordInitiate(email: String!): NoContent!
+  resetPasswordFinalize(input: ResetPasswordFinalizeInput!): NoContent!
+  userChangePassword(id: String!, input: UserChangePasswordInput!): NoContent!
+  userSetPassword(id: ID!, password: String!): Boolean!
+  userToggleFollowExpert(id: String!, expertId: String!): Expert
+  userToggleBlockedState(id: String!): User
+  isCouponValid(planId: String!, coupon: String!): IsCouponValid!
+  skipSubscriptionTrial(userId: String): User
+
+  """
+  Create tigerhall teams user account and organisation
+  """
+  createTeamsAccount(input: CreateTeamsInput): CreateTeamsResult
+
+  """
+  Create teams organisation with the existing user as org admin, if no individual active subscription exists for the user
+  """
+  switchUserToTeams: CreateTeamsResult
+
+  """
+  Create content user note
+  """
+  createContentUserNote(contentId: ID!, input: CreateContentUserNote): ContentUserNote!
+
+  """
+  Update an existing content user note
+  """
+  updateContentUserNote(noteId: ID!, input: UpdateContentUserNote): ContentUserNote!
+
+  """
+  Delete an existing content user note
+  """
+  deleteContentUserNote(noteId: ID!): Boolean!
+
+  """
+  Create a stream using a preexisting video
+  """
+  createStream(input: StreamInput!): Stream
+
+  """
+  Create a stream with an upload works in the same as as he regular create stream but uses the uploaded file
+  """
+  createStreamWithUpload(input: StreamInput!, file: Upload!): Stream
+    @deprecated(reason: "we use upsertStreamMedia to create / update stream media with it's respective language")
+
+  """
+  Create / Update stream's media / subtitle.
+  """
+  upsertStreamMedia(input: UpsertStreamMediaInput!): Stream!
+
+  """
+  Create a live stream and if an organisation is specified then it's restricted to that organisation
+  """
+  createLiveStream(
+    name: String!
+    invitedHosts: [ID!]!
+    organisationID: ID
+    organisationGroups: [ID!]
+    featuredHost: ID
+  ): Stream!
+
+  """
+  Create a live stream based on existing event. If the event is for a specific org, it must match the passed organisationID.
+  Note: organisation and organisationGroups info will be inherited as declared in the event.
+  """
+  createLiveStreamFromEvent(name: String!, eventID: ID!, invitedHosts: [ID!]!, featuredHost: ID): Stream!
+
+  """
+  To update livestream details while it's in progress i.e backstage and it publish the updated changes of stream which can be subsribed to
+  via ongoingStreams or streams subscription
+  """
+  updateLiveStream(id: ID!, input: LiveStreamInput!): Stream
+
+  """
+  Update a stream, should only be used for updating properties of a recorded stream
+  """
+  updateStream(id: String!, input: StreamInput!): Stream
+
+  """
+  Delete a stream, remove a stream from the system
+  """
+  deleteStream(id: String!): String!
+
+  """
+  Start stream, This should be called after creating a live stream once we have figured out the Agora UID
+  """
+  startStream(streamId: ID!, uid: Int!, goToBackStage: Boolean): Stream!
+
+  """
+  streamGoLive, This should be called after starting live stream and when hosts are in holding area
+  and ready to go live
+  """
+  streamGoLive(streamId: ID!, uid: Int!): Stream!
+
+  """
+  Stop stream, This should be called to stop a live stream
+  """
+  stopStream(streamId: ID!): Boolean!
+
+  """
+  When a user joins a stream and they are invited to join as a host then this is the API call tha makes them visible
+
+  todo: rename this method to better match what it does
+  """
+  addHost(streamId: ID!, uid: Int!): Stream!
+
+  """
+  Remove a host from the live stream
+  """
+  removeHost(streamId: ID!, uid: Int!, hostId: ID): Stream!
+
+  """
+  Swap the order of two hosts in a stream
+  """
+  swapHost(streamId: ID!, order: Int!, newOrder: Int!): Stream!
+
+  """
+  updates the featured host
+  """
+  setFeaturedHost(streamId: ID!, hostId: ID!): Stream!
+
+  """
+  updates the livestream creator. Super admin / creator can pass the creator rights to other host.
+  Once the creator is updated, the previous creator can even leave the stream if they want to
+  """
+  updateStreamCreator(streamId: ID!, newCreatorId: ID!): Stream!
+
+  """
+  Send a chat message to a live stream
+  """
+  streamPostMessage(input: StreamChatMessageInput): Boolean!
+
+  """
+  To add new hosts to the livestream and send them notification to join it.
+  """
+  invitesAddHosts(streamID: ID!, hosts: [ID!]!): Boolean!
+  invitesRemoveHost(streamID: ID!, userID: ID!): Boolean! @deprecated(reason: "Use removeHost mutation")
+  invitesReject(streamID: ID!): Boolean!
+
+  """
+  To send the invitation reminder to host for joining the livestream
+  """
+  inviteHost(streamID: ID!, hostID: ID!): Boolean!
+
+  """
+  This mutation is used to track clicks on content based on the recommendation id  and query string from a search result when using contentCards
+  """
+  searchResultClicked(input: ClickAnalyticsInput!): Boolean!
+
+  """
+  This mutation is used to add poll questions
+  """
+  createPollQuestion(input: PollQuestionInput!): PollQuestionResponse!
+
+  """
+  This mutation is used to update poll question
+  """
+  updatePollQuestion(id: ID!, input: PollQuestionInput!): PollQuestionResponse!
+
+  """
+  This mutation is used to delete poll question
+  """
+  deletePollQuestion(id: ID!): Boolean!
+
+  """
+  Allow submitting suggestions to the content / marketing team
+  """
+  suggestNewPoll(input: PollSuggestion!): Boolean!
+
+  """
+  This mutation is used to follow unfollow other user
+  """
+  userToggleFollow(personToFollow: ID!): User!
+
+  """
+  This mutation to add answer to question
+  """
+  addAnswerToPollQuestion(input: PollQuestionAnswer!): Boolean!
+    @deprecated(reason: "Use addAnswerToPollQuestionV2 instead it will return answer opiton object in return")
+
+  """
+  This mutation to add answer to question v2 which return answer options object
+  """
+  addAnswerToPollQuestionV2(input: PollQuestionAnswer!): PollQuestionResponse!
+
+  """
+  This mutation to reset given poll question answer so that user can change it's answer later
+  """
+  resetPollQuestionAnswer(questionId: ID!): Boolean!
+
+  """
+  Upload an image
+  """
+  uploadImage(image: Upload!, alt: String): Image
+
+  """
+  Delete an image
+  """
+  deleteImage(id: String!): NoContent!
+
+  """
+  Updates alt tag of image
+  """
+  updateImageAltTag(id: ID!, alt: String!): Image
+
+  """
+  Add a comment
+  """
+  createComment(comment: PostComment!): Comment!
+
+  """
+  Rate a content piece, can either be UPVOTE, DOWNVOTE, UNDETERMINED
+  """
+  rateContent(contentId: ID!, vote: ContentVote!): ContentRating!
+
+  """
+  delete a comment
+  """
+  deleteComment(comment: ID!): Boolean!
+
+  """
+  update a comment
+  """
+  updateComment(update: UpdateComment!): Comment!
+
+  """
+  toggleLike like a activity base on type and return activity in return
+  this works as generic function to like any activity
+  right now supports comment and feed will extends this mutation further in future
+  """
+  toggleLike(referenceId: ID!, type: LikeType!): LikeableContent!
+
+  """
+  Toggle a user as an expert
+  """
+  toggleUserAsExpert(id: ID!): User!
+
+  """
+  creates a new trail cohort
+  """
+  createCohort(input: CreateCohortInput!): Cohort!
+  leaveCohort(cohortId: ID!): Boolean!
+
+  """
+  removes a user from the cohort, can be removed by creator or admins
+  """
+  removeCohortUser(cohortId: ID, userIds: [ID!]!): Cohort!
+
+  """
+  nudgeCohortUser send notification to user to accept or reject cohort invitation
+  """
+  nudgeCohortUser(cohortId: ID!, userId: ID!): Cohort!
+
+  """
+  add new users to the cohort
+  """
+  addCohortMembers(cohortId: ID!, users: [ID!]!): Cohort!
+
+  """
+  updates the invitation status of cohort
+  """
+  updateCohortInvitationStatus(cohortId: ID!, status: CohortInviteStatus!): Cohort!
+  disbandCohort(cohortId: ID!): Boolean!
+
+  """
+  refreshToken will create a new JWT and attach updated user value to jwt token
+  """
+  refreshToken: AuthenticationResponse!
+
+  """
+  toggleUserAsBillable toggles user as billable/non-billable
+  billable means this users will be counted towards the number of licences(user count) set during contract
+  """
+  toggleUserAsBillable(id: ID!): User!
+  toggleContentAsArchived(id: ID!, contentType: ContentType!): NoContent!
+  unblockUserAuth(id: ID!): NoContent!
+
+  """
+  translateEbook translates ebook from sourceLanguageCode to targetLanguageCodes
+  targetLanguageCodes if sent ebook will be translated only in those languages and if not sent ebook will be translated in all the supported languages by us
+  """
+  translateEbook(id: ID!, sourceLanguageCode: String!, targetLanguageCodes: [String!]): Boolean!
+
+  """
+  Login with facebook will create a new account if no user with the provided facebook id exists
+  """
+  loginFB(token: String!): AuthenticationResponse
+
+  """
+  Login with email with authenticate the request against an existing account
+
+  If backoffice is provided and the user has the correct permissions the JWT will be generated with a nil organisation
+  """
+  loginEmail(email: String!, password: String!, backoffice: Boolean): AuthenticationResponse
+
+  """
+  Login with linkedin will verify the authorization code (NOT Access token) against the linkedin API.
+
+  For linkedin to provide the authorization code the redirect_uri must be set to the same value as the one provided in
+  the request initiated on the client side.
+  """
+  loginLinkedIn(token: String!, redirectUri: String): AuthenticationResponse
+
+  """
+  Login with apple will verify the authentication nonce and either create an account or login based on an existing account
+
+  Note: Apple will only return the first & last name on the first authentication in the mobile app
+  so on the following request we can simple call this method with an empty string, calling it with null will break it.
+
+  CustomBundleId changes which clientId we should use to generate and validate the authorizationCode against apple
+  """
+  loginApple(
+    authorizationCode: String!
+    firstName: String!
+    lastName: String!
+    customBundleId: String
+  ): AuthenticationResponse
+
+  """
+  loginWorkOS handles authentication for both Google and Microsoft identity providers.
+  """
+  loginWorkOS(authenticationCode: String!, identity: IdentityType!): AuthenticationResponse
+
+  """
+  Reauthorize with organisation will create a new JWT associated to the provided organisation ID if the user has
+  the permissioned to do so
+  """
+  reauthorizeWithOrg(id: ID!): AuthenticationResponse!
+
+  """
+  Check if the email, well actually if the domain is sso enabled
+  """
+  isSSOEnabled(email: String!): Boolean!
+
+  """
+  createChatMessage id represent target content id for which people are talking about
+  """
+  createChatMessage(id: ID!, message: String!): ChatMessage!
+
+  """
+  updateUserPreferredLanguage updates the preferred language of a user.
+  """
+  updateUserPreferredLanguage(language: String!): User
+  createStripePromoCode(input: StripePromotionCodeInput!): [StripePromotionCode!]
+  deactivateStripePromoCode(id: String!): Boolean!
+
+  """
+  Report the content on the platform for a moderator to review
+  """
+  reportContent(contentID: ID!, contentType: ReportableContentType!, reason: String!, comment: String): Boolean!
+  createSubscriptionPlan(input: SubscriptionPlanInput): SubscriptionPlan
+  updateSubscriptionPlan(id: String!, input: SubscriptionPlanInput): SubscriptionPlan
+  deleteSubscriptionPlan(id: String!): NoContent!
+  userSubscribeToPlan(userId: String, planId: String!, stripeToken: String!, trial: Boolean, coupon: String): NoContent!
+  userChangeSubscription(userId: String, planId: String!, coupon: String): User
+  userCancelSubscription(userId: String, reasons: [String!]!): User
+  userChangePaymentToken(userId: String, stripeToken: String!): User
+
+  """
+  userInAppSubscription verify in-app purchase and store transaction details in our system
+  """
+  userInAppSubscription(input: UserInAppSubscriptionInput!): NoContent!
+
+  """
+  organisationSubscription will create the subscription for the provided organisation
+  """
+  organisationSubscription(input: OrganisationSubscriptionInput!): NoContent!
+
+  """
+  cancelOrganisationSubscription will cancel the subscription for the provided organisation immediately
+  """
+  cancelOrganisationSubscription(id: ID!): NoContent!
+
+  """
+  Take a pre-signed URL and create an image from it.
+  """
+  createGalleryImageFromPreSignedUrl(url: String!): Image!
+
+  """
+  Login a user using microsoft teams access token
+
+  Note: This will only work if the user already exists, we cannot provision new users using this method
+  """
+  loginMSTeams(accessToken: String!): AuthenticationResponse
+
+  """
+  Register a new follow topic channel tab
+  """
+  registerFollowTopicTab(teamId: String!, channelId: String!, topics: [ID!]!): MSteamsChannelTabFollowTopic!
+
+  """
+  Update the topics of a follow topic channel tab
+  """
+  updateFollowTopicTab(id: ID!, topics: [ID!]!): MSteamsChannelTabFollowTopic!
+
+  """
+  Unregister a follow topic channel tab
+
+  Note: the id is the same as the channels entityId
+  """
+  unregisterFollowTopicTab(id: ID!): Boolean!
+
+  """
+  markNotificationsOld is for when user opens the notification center to mark all the new notifications as unread
+  """
+  markNotificationsOld: User!
+
+  """
+  markNotificationRead will mark that notification as read
+  """
+  markNotificationRead(id: ID!): Notification!
+
+  """
+  markAllNotificationRead will mark all the user notifications as read
+  """
+  markAllNotificationRead(filter: NotificationFilter): NotificationConnection!
+
+  """
+  deleteNotification deletes the notification
+  """
+  deleteNotification(id: String!): NoContent!
+
+  """
+  Toggle mute on an entire notification type
+
+  The optional userID value can only be passed by admins and will override
+  """
+  toggleNotificationPreference(type: NotificationType!, userID: ID): UserNotificationPreference
+
+  """
+  Toggle if you should receive notifications a certain type of notifications on a specific content piece
+  """
+  toggleMuteNotification(contentId: ID!, type: NotificationType!): NotificationPreferenceState!
+
+  """
+  Revoke the invitation for a user to join an organisation
+  """
+  removeUserOrgInvitation(ids: [ID!]!): NoContent!
+
+  """
+  Create a pre signed URL for the user to upload an object to s3
+  """
+  getPreSignedUploadUrl(name: String!, contentType: String!): PreSignedUploadUrl!
+
+  """
+  Update the users avatar image, if null is provided for the image it's removed
+  """
+  updateUserAvatarImage(url: String, userId: ID): User!
+
+  """
+  Update the users cover image, if null is provided for the image it's removed
+  """
+  updateUserCoverImage(url: String, userId: ID): User!
+}
+
+type NoContent {
+  success: Boolean!
+}
+
+type NotesConnection {
+  edges: [ContentUserNote!]!
+  meta: PageInfo!
+}
+
+type Notification {
+  id: ID!
+  title: String!
+  body: String!
+  deepLink: String!
+  image: Image
+  type: NotificationType
+  state: NotificationState!
+  readAt: Time
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type NotificationConnection {
+  meta: CursorInfo!
+  edges: [NotificationEdge!]!
+}
+
+type NotificationEdge {
+  cursor: String!
+  notification: Notification!
+}
+
+input NotificationFilter {
+  viewerType: NotificationViewerType
+}
+
+enum NotificationPlatform {
+  EMAIL
+  PUSH_NOTIFICATION
+}
+
+enum NotificationPreferenceState {
+  ENABLED
+  DISABLED
+}
+
+enum NotificationState {
+  NEW
+  READ
+  UNREAD
+}
+
+enum NotificationType {
+  COMMENT
+  LIKE
+  FOLLOW
+  REPLY_ON_COMMENT
+  CHAT_MESSAGES
+  COHORT_INVITATION
+  COHORT_INVITATION_ACCEPTED
+  COHORT_INVITATION_REJECTED
+  ORGANISATION_INVITATION_ACCEPTED
+  ORGANISATION_INVITATION_REJECTED
+  ASSIGNMENT
+  THINKFLUENCER_NEW_CONTENT
+  LIVESTREAM_IS_LIVE
+  LIVESTREAM_INVITED_AS_HOST
+  PRODUCT_UPDATES
+  GENERAL_NEWSLETTER
+  MARKETING_COMMUNICATIONS
+}
+
+enum NotificationViewerType {
+  MOBILE
+  WEB
+  ALL
+}
+
+input OffsetPagination {
+  limit: Int!
+  offset: Int!
+}
+
+input OnboardingQuestionsFilter {
+  """
+  Filter on questions shown for a specific purpose
+  """
+  purpose: ShowOnScreenType
+}
+
+input OnboardingUsersToFollowFilter {
+  onlyExperts: Boolean
+  limit: Int!
+
+  """
+  during onboarding, we don't have any user data in db, instead of first saving
+  the selected lifegoal or users followed and then querying, sending the selection directly in the request
+  """
+  followingLifegoals: [ID!]!
+  followingUsers: [ID!]!
+  sameOrganisation: Boolean
+  query: String
+}
+
+type Organisation {
+  """
+  Unique identifier
+  """
+  id: ID!
+
+  """
+  The brand name of the company
+  """
+  name: String!
+
+  """
+  What type of organisation this is
+  """
+  type: OrganisationCustomerType!
+
+  """
+  The invitation token is used to generate a link where members of a company can sign up at will
+  """
+  invitationToken: ID!
+
+  """
+  The groups associated within the organisation
+  """
+  groups: [OrganisationGroup!]!
+    @deprecated(
+      reason: "This will be deprecated in future as it doesnt allow for pagination, please use orgGroups instead"
+    )
+
+  """
+  The groups associated within the organisation (paginate, filter and sortable)
+  """
+  orgGroups(filter: OrganisationGroupFilter, sorting: SortOrdering): OrganisationGroupConnection!
+
+  """
+  The users are that marked as org admins are available here
+  """
+  admins: [User!]!
+
+  """
+  Retrieve the members of the organisation
+  """
+  members(filter: OrganisationMemberFilter, sorting: SortOrdering): UserCollection!
+
+  """
+  The most popular experts based on the consumption of their content cards
+  """
+  statisticsMostPopularExperts(filter: OrgStatisticsFilter!): [PieDataPoint!]!
+
+  """
+  The most popular categories based on the consumption of content cards
+  """
+  statisticsMostPopularCategories(filter: OrgStatisticsFilter!): [PieDataPoint!]!
+
+  """
+  The number of users active in the provided frequency
+  """
+  statisticsUserActivity(filter: OrgStatisticsFilter!): [GraphDataPoint!]!
+
+  """
+  The average time spent on content group by provided frequency
+  """
+  statisticsAverageTimeSpent(filter: OrgStatisticsFilter!): [GraphDataPoint!]!
+
+  """
+  The average number of new content pieces started
+  """
+  statisticsAverageContentPiecesStart(filter: OrgStatisticsFilter!): [GraphDataPoint!]!
+
+  """
+  Leader bord for the most active users
+  """
+  statisticsMostActiveUsers(filter: OrgStatisticsFilter!): [OrgStatsMostActiveUser!]!
+
+  """
+  Leader board for the most popular content
+  """
+  statisticsMostPopularContent(filter: OrgStatisticsFilter!): [OrgStatsMostPopularContent!]!
+
+  """
+  Return the most popular content listened to by users within this organisation
+
+  At most, this endpoint will return 20 content pieces.
+  """
+  mostPopularContent: [Content!]!
+
+  """
+  The percentage of users that have accessed the application
+  """
+  memberAdoptionRate: Float!
+
+  """
+  The number of users that have access the application
+  """
+  membersLoggedIn: Int!
+
+  """
+  Call this to get a sso url for accessing the stripe customer portal for this account.
+
+  Note: Do not include this in every single request please.
+  """
+  stripeCustomerPortal(returnURL: String!): String!
+    @deprecated(reason: "this has been replaced by a http endpoint that does a 301 redirect")
+
+  """
+  The subscription associated to the organisation
+  """
+  subscription: SubscriptionModel
+
+  """
+  List of assignments created by this organisation
+  """
+  assignments(filter: AssignmentsFilter!, sorting: SortOrdering): AssignmentConnection!
+
+  """
+  List statistics per assignment for the organisation
+  """
+  assignmentStatisticsByAssignment(filter: StatisticsByAssignmentFilter!): StatisticsByAssignmentConnection!
+
+  """
+  List assignment statistics per org group for the organisation
+  """
+  assignmentStatisticsByGroup(filter: StatisticsByGroupFilter!): StatisticsByGroupConnection!
+
+  """
+  List assignment statistics per user for the organisation
+  """
+  assignmentStatisticsByUser(filter: StatisticsByUserFilter!): StatisticsByUserConnection!
+
+  """
+  Get the statistics for each member in terms of completion rate
+  """
+  assignmentMemberStatistics: [AssignmentMemberStatistics!]!
+    @deprecated(reason: "use the new assignment statistics query (assignmentStatisticsByUser)")
+
+  """
+  Get the statistics for an organisation grouped by content
+  """
+  assignmentContentStatistics: [AssignmentContentStatistics!]!
+    @deprecated(reason: "use the new assignment statistics query (assignmentStatisticsByAssignment)")
+
+  """
+  Get the statistics for an organisation grouped by organisation groups
+  """
+  assignmentGroupStatistics: [AssignmentGroupStatistics!]!
+    @deprecated(reason: "use the new assignment statistics query (assignmentStatisticsByGroup)")
+
+  """
+  The user that created the organisation
+  """
+  createdBy: User
+
+  """
+  A map of which of the onboarding templates the organisation has overwritten
+  """
+  onboardingJourneyOverride: Map!
+
+  """
+  When the organisation was created
+  """
+  createdAt: Time!
+
+  """
+  When the organisation was last updated
+  """
+  updatedAt: Time!
+
+  """
+  activeUsers show non blocked users of organisation
+  """
+  activeUsers: Int!
+
+  """
+  organisation logo
+  """
+  logo: Image
+
+  """
+  canvas onboarding ID of the organisation
+  """
+  canvasOnboardingID: ID!
+  invitations(field: InvitationFilter!, sorting: SortOrdering): InvitationConnection!
+}
+
+type OrganisationConnection {
+  meta: PageInfo!
+  edges: [Organisation!]!
+}
+
+enum OrganisationCustomerType {
+  TEAMS
+  ENTERPRISE
+}
+
+input OrganisationFilter {
+  name: String
+  hasSubscription: Boolean
+  type: OrganisationCustomerType
+  accessType: OrganisationSubscriptionAccessType
+  limit: Int
+  offset: Int
+}
+
+type OrganisationGroup {
+  id: ID!
+  name: String!
+  members: [User!]!
+  organisation: Organisation!
+  numberOfMembers: Int!
+  createdBy: User
+  assignments: [Assignment!]
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type OrganisationGroupConnection {
+  meta: PageInfo!
+  edges: [OrganisationGroup!]!
+}
+
+input OrganisationGroupFilter {
+  name: String
+  createdAt: TimeRangeFilter
+  limit: Int
+  offset: Int
+}
+
+input OrganisationGroupInput {
+  name: String!
+}
+
+input OrganisationInput {
+  name: String!
+  logo: ID
+}
+
+input OrganisationMemberFilter {
+  """
+  Filter the users by name
+  """
+  name: String
+
+  """
+  Filter the users by the provided email
+  """
+  email: String
+
+  """
+  Retrieve users by a specific group id
+  """
+  groupId: ID
+
+  """
+  If specified it will filter the users to either admin/not-admin or both
+  """
+  isAdmin: Boolean
+
+  """
+  The users need to be created between these two date range
+  """
+  createdBetween: TimeRangeFilter
+
+  """
+  The number of users returned
+  """
+  limit: Int
+
+  """
+  Offset pagination
+  """
+  offset: Int
+
+  """
+  If specified it will filter the users to either billable/not-billable or both
+  """
+  isBillable: Boolean
+
+  """
+  Status of user account. If specified, it can be either BLOCKED, ACTIVE or PENDING ACTIVATION.
+  """
+  status: OrgMemberStatus
+}
+
+enum OrganisationRole {
+  MEMBER
+  ADMIN
+}
+
+type OrganisationStats {
+  headers: [String!]!
+  data: [[String!]]!
+}
+
+enum OrganisationSubscriptionAccessType {
+  PILOT
+  CONTRACTED
+  DEMO
+}
+
+input OrganisationSubscriptionInput {
+  orgId: ID!
+  accessType: OrganisationSubscriptionAccessType!
+  licencesCount: Int!
+  startDate: Time
+  endDate: Time
+}
+
+input OrganisationUserImport {
+  firstName: String
+  lastName: String
+  email: String!
+}
+
+type OrganisationUserImportResponse {
+  firstName: String
+  lastName: String
+  email: String!
+  error: String!
+}
+
+enum OrgMemberStatus {
+  BLOCKED
+  ACTIVE
+  PENDING_ACTIVATION
+}
+
+input OrgStatisticsFilter {
+  from: Time
+  until: Time
+  frequency: OrgStatsGroupingFrequency
+  organisationGroups: [ID!]
+}
+
+enum OrgStatsGroupingFrequency {
+  day
+  week
+  month
+  quarter
+  year
+}
+
+type OrgStatsMostActiveUser {
+  userId: ID!
+  username: String!
+  averageCompletionRate: Float!
+  startedContentPieces: Int!
+  timeSpentInSeconds: Int!
+}
+
+type OrgStatsMostPopularContent {
+  contentId: ID!
+  contentType: ContentType!
+  contentName: String!
+  averageCompletionRate: Float!
+  numberOfUsers: Int!
+  timeSpentInSeconds: Int!
+}
+
+type PageInfo {
+  total: Int!
+  limit: Int!
+  offset: Int!
+  recommendationId: String
+}
+
+enum Persona {
+  CORPORATE_CHARLIE
+  CURIOUS_CHRISTINA
+  IMPROVER_IAN
+  CARRER_CALVIN
+  NETWORK_NATALIE
+  CEO_TO_BE_CARL
+}
+
+type PersonaConnection {
+  edges: [PersonaQuestionAnswer!]!
+  meta: PageInfo!
+}
+
+type PersonaQuestion {
+  id: ID!
+  question: String!
+  imageUri: String!
+}
+
+type PersonaQuestionAnswer {
+  id: ID!
+  question: PersonaQuestion!
+  result: Boolean!
+  createdAt: Time!
+}
+
+type PieDataPoint {
+  id: ID!
+  label: String!
+  value: Int!
+}
+
+type Podcast {
+  id: ID!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+  name: String!
+  preamble: String!
+  image: Image
+  length(language: String): Int!
+  entryLevel: EntryLevelValue!
+  isFeatured: Boolean!
+  isFree: Boolean! @deprecated(reason: "No longer applicable")
+  contentSegments: [ContentSegment!]!
+  episodes(language: String): [Episode!]!
+  experts: [Expert!]!
+  hostedBy: [User]
+  categories: [Category!]!
+  learningPaths(filter: LearningPathFilter!, sorting: SortOrdering): LearningPathConnection!
+  userContentTracking: UserContentTracking!
+
+  """
+  Which organisation this event is available for. If no organisation then it's a public event
+  """
+  organisation: Organisation
+
+  """
+  Which groups within an organisation this event is available for.
+  """
+  organisationGroups: [OrganisationGroup!]!
+
+  """
+  Retrieve content that is related to this content piece
+  """
+  relatedContent(limit: Int!): [ContentCard!]!
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: Time
+  publishedAt(language: String): Time
+
+  """
+  Averge rating from 1-5 the content piece has received
+  """
+  rating: Float!
+
+  """
+  The number of reviews the content piece as received
+  """
+  numberOfReviews: Int!
+
+  """
+  The amount of time spent on by users
+  """
+  activityCount: Int! @deprecated(reason: "Use timeSpentOnByUsers insteads")
+
+  """
+  The amount of time spent on by users
+  """
+  timeSpentOnByUsers: Int!
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]!
+
+  """
+  The number of upvotes the content piece has received
+  """
+  upvoteCount: Int!
+
+  """
+  The number of downvotes the content piece has received
+  """
+  downvoteCount: Int!
+
+  """
+  Tells whether content is rated by user or not
+  """
+  contentRatingByUser: ContentVote!
+
+  """
+  Comments on content
+  """
+  comments(limit: Int, beforeCursor: String, afterCursor: String): CommentCursorConnection!
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+  numberOfComments: Int!
+  type: ContentType!
+
+  """
+  Available languages on the podcast
+  """
+  audioAvailableLanguages: [Language!]!
+
+  """
+  Available languages on the podcast's transcripts
+  """
+  transcriptAvailableLanguages: [Language!]!
+
+  """
+  The transcript file of the podcast ( default english)
+  """
+  transcripts(language: String): PodcastTranscript!
+  notificationPreference(type: NotificationType!): NotificationPreferenceState!
+}
+
+input PodcastAudioInput {
+  episodes: [EpisodeInput]!
+  length: Int
+  publishedAt: Time
+}
+
+type PodcastConnection {
+  meta: PageInfo!
+  edges: [Podcast!]!
+}
+
+input PodcastFilter {
+  limit: Int
+  offset: Int
+  name: String
+  experts: [ID!]
+  categories: [ID!]
+  entryLevel: [EntryLevelValue!]
+  organisationID: [ID!]
+  organisationGroups: [ID!]
+  onlyRated: Boolean
+  languages: [String!]
+
+  """
+  includeSensitiveContent filter the content basis of sensitivity of content
+  """
+  includeSensitiveContent: Boolean
+  includeDeleted: Boolean
+}
+
+input PodcastInput {
+  name: String!
+  preamble: String!
+  image: ID!
+  contentSegments: [ContentSegmentInput!]!
+  length: Int!
+  experts: [ID!]!
+  hostedBy: [ID]
+  categories: [ID!]!
+  entryLevel: EntryLevelValue!
+  episodes: [EpisodeInput]
+  publishedAt: Time
+  organisationID: ID
+  organisationGroups: [ID!]
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]
+
+  """
+  Tags represents hash tags which will be attached to content for better search and better content delivery
+  """
+  tags: [String!]
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+}
+
+type PodcastTranscript {
+  language: String!
+  publishedAt: Time
+  length: Int
+  transcripts: [Transcript!]!
+}
+
+input PodcastTranscriptInput {
+  transcripts: [TranscriptInput]!
+  length: Int
+  publishedAt: Time
+}
+
+input PollQuestionAnswer {
+  """
+  The question id displayed to the user
+  """
+  questionId: ID!
+
+  """
+  The answer provided by the user
+  """
+  answerId: ID!
+}
+
+input PollQuestionAnswerOption {
+  """
+  Unique identifier of the poll question answer
+
+  This should be NULL when creating new poll questions and must be provided when updating
+  """
+  id: ID
+
+  """
+  The answer text that is displayed to the user
+  """
+  answer: String!
+
+  """
+  The image to display if the question type is MCQ (Multiple choice question) if the type is boolean it's not used.
+  """
+  imageID: ID
+}
+
+type PollQuestionAnswerOptions {
+  """
+  Unique answer identifier
+  """
+  id: ID!
+
+  """
+  The poll question answer displayed to the user
+  """
+  answer: String!
+
+  """
+  The image to be displayed when asking the question
+  """
+  image: Image
+
+  """
+  Vote count represents number of user selected this particular opiton for answer.
+  """
+  voteCount: Int!
+}
+
+type PollQuestionConnection {
+  edges: [PollQuestionResponse!]!
+  meta: PageInfo!
+}
+
+input PollQuestionFilter {
+  """
+  Filter the question basis of time frame
+  """
+  activeFrom: Time
+
+  """
+  Filter the question basis of time frame
+  """
+  activeUntil: Time
+
+  """
+  Filter the question basis of question type
+  """
+  questionType: QuestionType
+
+  """
+  Filter the question basis of screenType
+  """
+  showOnScreen: ShowOnScreenType @deprecated(reason: "Dont use this anymore instead use purpose")
+
+  """
+  Filter the question basis of polling purpose either it can be daily polls or for onboarding purpose
+  """
+  purpose: ShowOnScreenType
+
+  """
+  Filter already answered question bases on authenticated user
+  """
+  excludeAlreadyAnswered: Boolean
+  exludeAlreadyAnswered: Boolean @deprecated(reason: "Typo in the field name, use excludeAlreadyAnswered instead")
+
+  """
+  Query the question
+  """
+  query: String
+
+  """
+  The number of items to return
+  """
+  limit: Int!
+
+  """
+  Offset in the pagination
+  """
+  offset: Int!
+  inAppDisplay: Boolean
+}
+
+input PollQuestionInput {
+  """
+  The question displayed to the user
+  """
+  question: String!
+
+  """
+  Filter the question basis of time frame
+  """
+  activeFrom: Time!
+
+  """
+  Filter the question basis of time frame
+  """
+  activeUntil: Time!
+
+  """
+  Filter the question basis of question type
+  """
+  questionType: QuestionType!
+
+  """
+  An image ID should be provided if the QuestionType is BOOLEAN since it's a yes or no question
+  """
+  imageID: ID
+
+  """
+  Define the purpose of the polls like daily polls onboarding as so on.
+  """
+  purpose: ShowOnScreenType!
+
+  """
+  The different alternatives to answer with
+  """
+  answerOptions: [PollQuestionAnswerOption!]!
+}
+
+type PollQuestionResponse {
+  """
+  The unique identifier of the poll question
+  """
+  id: ID!
+
+  """
+  Which type of question this is
+  """
+  questionType: QuestionType!
+
+  """
+  The question displayed to the user
+  """
+  question: String!
+
+  """
+  If the current question is active or not
+  """
+  active: Boolean!
+
+  """
+  The image to be displayed when asking the question
+  """
+  image: Image
+
+  """
+  The name of the clevertap user property in which we want to persist this answer
+  """
+  clevertapKey: String!
+
+  """
+  Define the purpose of the polls like daily polls onboarding as so on.
+  """
+  purpose: ShowOnScreenType!
+
+  """
+  A list of alternatives for the user to answer the poll with
+  """
+  answerOptions: [PollQuestionAnswerOptions!]!
+
+  """
+  The selected answer that the authenticated user voted for
+  """
+  selectedAnswer: PollQuestionAnswerOptions
+
+  """
+  End time of the poll question
+  """
+  activeUntil: Time!
+
+  """
+  Start time of the poll question
+  """
+  activeFrom: Time!
+}
+
+input PollSuggestion {
+  suggestion: String!
+}
+
+input PostComment {
+  """
+  To be deprecated: Use raw text instead
+  """
+  comment: String!
+  parentComment: ID
+  referenceId: ID!
+  type: CommentType!
+  rawText: String
+  mentions: [MentionInput]
+}
+
+type PreSignedUploadUrl {
+  """
+  Target this URL when doing the upload
+  """
+  url: String!
+
+  """
+  Copy these exact headers to the request when uploading and DO NOT modify or it will fail with a 403 error
+  """
+  headers: Map!
+
+  """
+  How long the URL is valid for in seconds
+  """
+  expiresIn: Int!
+}
+
+type Query {
+  category(id: String!): Category
+  categories(filter: CategoryFilter, sorting: SortOrdering): CategoryConnection!
+  coupon(code: String!): Coupon!
+  coupons(filter: CouponFilter, sorting: SortOrdering): CouponConnection
+
+  """
+  This will change only to accept id in the future once the new website has been released.
+  """
+  contentCard(id: ID, slug: String, contentType: ContentType): ContentCard!
+  contentCards(filter: ContentCardsFilter, sorting: ContentCardsSorting, tags: [String!]): ContentConnection!
+  contentRating(contentId: String!, sorting: SortOrdering): ContentRatingConnection!
+
+  """
+  Retrieve a comment by it's ID
+  """
+  comment(id: ID!): Comment!
+  getLearningPathsByUserTracking(filter: UserCollectionTrackingFilter, sorting: SortOrdering): LearningPathConnection!
+
+  """
+  this will be change to only accept ID in new website
+  """
+  event(id: String, slug: String): Event
+  events(filter: EventFilter, sorting: SortOrdering): EventConnection!
+
+  """
+  scheduledLivestreamEvents will list all events within +-24hours that have reserved livestream created with the creator as a host.
+  """
+  scheduledLivestreamEvents(sorting: SortOrdering): EventConnection!
+
+  """
+  this will be change to only accept ID in new website
+  """
+  ebook(id: String, slug: String): Ebook
+  ebooks(filter: EbookFilter, sorting: SortOrdering): EbookConnection!
+
+  """
+  this will be change to only accept ID in new website
+  """
+  expert(id: String, slug: String): Expert
+  experts(filter: ExpertFilter, sorting: SortOrdering): ExpertCollection!
+  featuredContent(id: String!): FeaturedContent
+  featuredContentEntries(filter: FeaturedContentFilter, sorting: SortOrdering): FeaturedContentConnection!
+  images(filter: ImageFilter, sorting: SortOrdering): ImageConnection!
+
+  """
+  Retrieve an images by it's identifier
+  """
+  image(id: String!): Image
+  learningPath(id: String!): LearningPath
+  learningPaths(filter: LearningPathFilter, sorting: SortOrdering): LearningPathConnection!
+
+  """
+  The promoted learning path of this month
+
+  Note: This is nullable
+  """
+  promotedLearningPathOfTheMonth: MonthlyPromotedLearningPath
+
+  """
+  Currently authenticated user
+  """
+  me: User
+  organisation(id: String!): Organisation!
+  organisations(filter: OrganisationFilter, sorting: SortOrdering): OrganisationConnection!
+  organisationGroup(id: String!): OrganisationGroup
+
+  """
+  this will be change to only accept ID in new website
+  """
+  podcast(id: String, slug: String): Podcast
+  podcasts(filter: PodcastFilter, sorting: SortOrdering): PodcastConnection!
+
+  """
+  this will be change to only accept ID in new website
+  """
+  stream(id: String, slug: String): Stream
+  streams(filter: StreamFilter, sorting: SortOrdering): StreamConnection!
+
+  """
+  query to show streams in watch section on marketing website
+  """
+  watchStreams(pagination: OffsetPagination): StreamConnection!
+  streamChatMessage(id: String!): StreamChatMessage
+  streamChatMessages(id: String!, input: StreamChatMessagesFilter): [StreamChatMessage]!
+  user(id: String!): User
+  users(filter: UserFilter, sorting: SortOrdering): UserCollection!
+  currentlyFeaturedContent: ContentCard
+    @deprecated(reason: "Dont use this because we now have an array of featured content in the app")
+  currentlyFeaturedContentWithConfig: CurrentlyFeaturedContent
+    @deprecated(reason: "Dont use this because we now have an array of featured content in the app")
+
+  """
+  QuerySuggestion This will help you to get query suggestion on heading and content fields
+  """
+  querySuggestion(query: String!): [String!]!
+
+  """
+  Retrieve a specific poll question by it's unique id
+  """
+  pollQuestion(id: ID!): PollQuestionResponse!
+
+  """
+  Retrieve all the metadata questions to ask the users
+  """
+  pollQuestions(filter: PollQuestionFilter): PollQuestionConnection!
+
+  """
+  A list of suggestion onboarding content that we display to the users when they first login to tigerhall
+  """
+  suggestedOnBoardingContent: ContentConnection!
+
+  """
+  user follow suggestion
+  """
+  suggestedUsersToFollow(filter: SuggestedUsersToFollowFilter!): FollowUserSuggestions!
+
+  """
+  List of tax rates for admin available with different filters
+  """
+  taxRates(filter: TaxRateFilter): TaxRateConnection!
+
+  """
+  Retrieve all the tax rates available for the user's CF countryCode
+  """
+  userTaxRates: TaxRateConnection!
+  feed(filter: FeedFilter!): FeedConnection
+  commentsSurroundingID(commentId: ID!, beforeLimit: Int, afterLimit: Int): CommentCursorConnection!
+  feedById(id: ID!): FeedActivity!
+
+  """
+  A group of users i.e cohort that are going on a trail together, a user can be part of multiple cohorts that do the same trail
+  """
+  cohort(id: ID!): Cohort!
+  cohorts(filter: CohortFilter, pagination: CursorPaginationInput): CohortConnection!
+
+  """
+  TODO: Need confirmation from nellie what will be the filter to list users
+  """
+  suggestUsersForCohort(cohortId: ID, filter: CohortInviteUserListFilter, pagination: OffsetPagination): UserCollection
+
+  """
+  Return specific timeline details for the cohort
+  """
+  timelineEntry(id: ID!): Timeline!
+
+  """
+  Retrieve a comment by it's ID
+  """
+  chat(id: ID!): Chat!
+
+  """
+  Retrieve a content by slug and content-type
+  """
+  slug(slug: String!, contentType: ContentType!): SlugContent!
+
+  """
+  Retrieve list of users who can livestream
+  """
+  usersWhoCanLivestream(name: String, pagination: OffsetPagination): UserCollection!
+
+  """
+  list assignments that the content belongs too
+  """
+  assignmentsForContent(id: ID!, contentType: ContentType!): AssignmentConnection!
+  languages: [Language!]!
+
+  """
+  Retrieve the life goal by ID
+  """
+  lifegoal(id: String!): Lifegoal
+
+  """
+  Retrieve the life goals
+  """
+  lifegoals(filter: LifegoalFilter, sorting: SortOrdering): LifegoalCollection!
+
+  """
+  user follow suggestions for onboarding page
+  """
+  onboardingSuggestUsersToFollow(filter: OnboardingUsersToFollowFilter!): FollowUserSuggestions!
+  listStripePromoCode(input: ListStripePromotionCodeInput!): [StripePromotionCode!]
+  subscriptions(filter: SubscriptionFilter, sorting: SortOrdering): SubscriptionConnection!
+  subscriptionPlan(id: String!): SubscriptionPlan!
+  subscriptionPlans(filter: SubscriptionPlanFilter, sorting: SortOrdering): SubscriptionPlanConnection!
+
+  """
+  Retrieve the channel tab configuration
+
+  Note: the id should be the same as the entityId of the channel tab
+  """
+  msTeamsFollowTopicTab(id: ID!): MSteamsChannelTabFollowTopic!
+}
+
+enum QuestionType {
+  """
+  Multiple choice question
+  """
+  MCQ
+  BOOLEAN
+}
+
+enum ReportableContentType {
+  EBOOK
+  PODCAST
+  EVENT
+  STREAM
+  LEARNING_PATH
+  USER
+  COMMENT
+}
+
+input ResetPasswordFinalizeInput {
+  email: String!
+  nonce: String!
+  password: String!
+}
+
+"""
+Content that can be searched for
+"""
+union SearchableContent = Ebook | Event | Podcast | Stream | Expert | LearningPath
+
+type SearchableContentCollection {
+  meta: PageInfo!
+  edges: [SearchableContent!]!
+}
+
+enum ShowOnScreenType {
+  ONBOARDING
+  DAILYPOLLS
+}
+
+"""
+This presents all the contents that have slug
+"""
+union SlugContent = Ebook | Event | Podcast | Stream | User | Category | LearningPath | Lifegoal
+
+input SortOrdering {
+  sorting: [SortOrderingInput!]
+}
+
+input SortOrderingInput {
+  field: String!
+  direction: String!
+}
+
+enum SpeechVoiceType {
+  MALE
+  FEMALE
+}
+
+type StatisticsByAssignmentConnection {
+  meta: PageInfo!
+  edges: [StatisticsByAssignmentResponse!]!
+}
+
+input StatisticsByAssignmentFilter {
+  assignmentTitle: String
+  limit: Int!
+  offset: Int!
+  assignmentStatus: [AssignmentStatus!]
+  organisationGroupIds: [ID!]
+  createdBetween: TimeRangeFilter
+}
+
+type StatisticsByAssignmentResponse {
+  isTotal: Boolean!
+  assignmentId: ID!
+  assignmentTitle: String!
+  usersAssigned: Int!
+  usersStarted: Int!
+  usersCompleted: Int!
+  percentUsersStarted: Float!
+  percentUsersCompleted: Float!
+  completionRate: Float!
+  durationConsumed: Float!
+  percentUsersLiked: Float!
+}
+
+type StatisticsByGroupConnection {
+  meta: PageInfo!
+  edges: [StatisticsByGroupResponse!]!
+}
+
+input StatisticsByGroupFilter {
+  groupName: String
+  limit: Int!
+  offset: Int!
+  assignmentStatus: [AssignmentStatus!]
+  organisationGroupIds: [ID!]
+  createdBetween: TimeRangeFilter
+}
+
+type StatisticsByGroupResponse {
+  isTotal: Boolean!
+  groupId: ID!
+  groupName: String!
+  assignmentId: ID!
+  assignmentTitle: String!
+  usersAssigned: Int!
+  usersStarted: Int!
+  usersCompleted: Int!
+  percentUsersLiked: Float!
+  completionRate: Float!
+  durationConsumed: Float!
+  totalDurationConsumed: Float!
+}
+
+type StatisticsByUserConnection {
+  meta: PageInfo!
+  edges: [StatisticsByUserResponse!]!
+}
+
+input StatisticsByUserFilter {
+  userName: String
+  limit: Int!
+  offset: Int!
+  assignmentStatus: [AssignmentStatus!]
+  organisationGroupIds: [ID!]
+  createdBetween: TimeRangeFilter
+}
+
+type StatisticsByUserResponse {
+  isTotal: Boolean!
+  userId: ID!
+  email: String!
+  userName: String!
+  assignmentId: ID!
+  assignmentTitle: String!
+  assignmentAssigned: Int!
+  assignmentStarted: Int!
+  assignmentCompleted: Int!
+  completionRate: Float!
+  durationConsumed: Float!
+  dateCompletion: Time
+}
+
+type Stream {
+  id: ID!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+
+  """
+  The stream transitions through a number of states while being created as a live stream or
+  directly from the authoring tools
+  """
+  status: StreamStatus!
+
+  """
+  Name of the stream as selected by expert or tigerhall
+  """
+  name: String!
+
+  """
+  Short introduction
+  """
+  preamble: String!
+
+  """
+  Image used when display a conten card for the stream
+  """
+  image: Image
+
+  """
+  Length of the stream in seconds
+  """
+  length(language: String): Int!
+
+  """
+  Level of the content
+  """
+  entryLevel: EntryLevelValue!
+
+  """
+  If users without a subscription can view the stream
+  """
+  isFree: Boolean! @deprecated(reason: "No longer applicable")
+
+  """
+  These are short segments that we display beneth the content card
+  """
+  contentSegments: [ContentSegment!]!
+
+  """
+  The URL to the video on S3 in the default language EN
+  """
+  videoUrl: String!
+
+  """
+  Agora channel identifier
+  """
+  channel: String!
+
+  """
+  A list of hosts in the stream, their order and if they have accepted the invite.
+  This should only be used during the part where the stream is live
+  """
+  hosts: [StreamHost!]!
+
+  """
+  List of users who have hosted the stream.
+  """
+  hostedBy: [User]
+
+  """
+  The experts associated with the publish content
+  """
+  experts: [Expert!]!
+
+  """
+  Messages that were sent by users during the live stream
+  """
+  messages(limit: Int!): [StreamChatMessage!]!
+
+  """
+  Categories associated to the content
+  """
+  categories: [Category!]!
+
+  """
+  Learning paths associated to this stream
+  """
+  learningPaths(filter: LearningPathFilter!, sorting: SortOrdering): LearningPathConnection!
+
+  """
+  The authenticated users current progress tracking
+  """
+  userContentTracking: UserContentTracking!
+
+  """
+  Which organisation this event is available for. If no organisation then it's a public event
+  """
+  organisation: Organisation
+
+  """
+  Which groups within an organisation this event is available for.
+  """
+  organisationGroups: [OrganisationGroup!]!
+
+  """
+  Retrieve content that is related to this content piece
+  """
+  relatedContent(limit: Int!): [ContentCard!]!
+
+  """
+  The user that created the live stream
+  """
+  createdBy: Expert
+
+  """
+  When the stream was created
+  """
+  createdAt: Time!
+
+  """
+  When the stream was last updated
+  """
+  updatedAt: Time!
+
+  """
+  When the stream was deleted
+  """
+  deletedAt: Time
+
+  """
+  When the stream was published
+  """
+  publishedAt(language: String): Time
+
+  """
+  When a stream transitioned from backstage to live
+  """
+  wentLiveAt: Time
+
+  """
+  Averge rating from 1-5 the content piece has received
+  """
+  rating: Float!
+
+  """
+  The number of reviews the content piece as received
+  """
+  numberOfReviews: Int!
+
+  """
+  The amount of time spent on by users
+  """
+  activityCount: Int! @deprecated(reason: "Use timeSpentOnByUsers insteads")
+
+  """
+  The amount of time spent on by users
+  """
+  timeSpentOnByUsers: Int!
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]!
+
+  """
+  The number of upvotes the content piece has received
+  """
+  upvoteCount: Int!
+
+  """
+  The number of downvotes the content piece has received
+  """
+  downvoteCount: Int!
+
+  """
+  Tells whether content is rated by user or not
+  """
+  contentRatingByUser: ContentVote!
+
+  """
+  Comments on content
+  """
+  comments(limit: Int, beforeCursor: String, afterCursor: String): CommentCursorConnection!
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+  numberOfComments: Int!
+  type: ContentType!
+
+  """
+  Lists all the available languages available on this stream for audio
+  """
+  audioAvailableLanguages: [Language!]!
+
+  """
+  Lists all the available languages available on this stream for subtitles
+  """
+  subtitleAvailableLanguages: [Language!]!
+
+  """
+  The video url to the video on S3 in the provided language
+  If language not provided, it defaults to users preferred language and if that is not available too, finally defaults to EN
+  """
+  video(language: String): StreamMedia!
+
+  """
+  The subtitle url to the video on S3 in the provided language
+  If language not provided, it defaults to users preferred language and if that is not available too, finally defaults to EN
+  """
+  subtitle(language: String): StreamSubtitles!
+  notificationPreference(type: NotificationType!): NotificationPreferenceState!
+}
+
+type StreamChatMessage {
+  id: ID!
+  streamId: ID!
+  content: String!
+  timestamp: Int!
+  user: User!
+}
+
+input StreamChatMessageInput {
+  streamId: ID!
+  content: String!
+  timestamp: Int
+    @deprecated(
+      reason: "Int is a signed i32 and we are sending unix timestamps in ms which requires i64 so this field broke with the apollo router introduction and is now deprecated and will be removed in the future."
+    )
+}
+
+input StreamChatMessagesFilter {
+  limit: Int
+  offset: Int
+}
+
+type StreamConnection {
+  meta: PageInfo!
+  edges: [Stream!]!
+}
+
+input StreamFilter {
+  limit: Int
+  offset: Int
+  name: String
+  status: [StreamStatus]
+  experts: [ID!]
+  categories: [ID!]
+  entryLevel: [EntryLevelValue!]
+  uniqueExpertStream: Boolean
+  createdBefore: Time
+  language: [String!]
+  organisationID: [ID!]
+  organisationGroups: [ID!]
+  onlyRated: Boolean
+
+  """
+  includeSensitiveContent filter the content basis of sensitivity of content
+  """
+  includeSensitiveContent: Boolean
+  includeDeleted: Boolean
+}
+
+type StreamHost {
+  """
+  Agora UID during live stream
+  """
+  uid: Uint32!
+
+  """
+  Order in which to sort the hosts
+  """
+  order: Int!
+
+  """
+  The users ID
+  """
+  userId: ID!
+
+  """
+  The expert profile
+  """
+  expert: Expert!
+
+  """
+  If they have accepted the invite, if null then they have not replied
+  """
+  accepted: Boolean
+
+  """
+  signifies if user is featured host or not
+  """
+  isFeatured: Boolean!
+}
+
+input StreamInput {
+  """
+  Name of the stream
+  """
+  name: String!
+
+  """
+  A brief introduction to the topic
+  """
+  preamble: String!
+
+  """
+  The image that the stream should have
+  """
+  image: ID!
+
+  """
+  In-depth description of the stream
+  """
+  contentSegments: [ContentSegmentInput!]!
+
+  """
+  How long the stream is
+  """
+  length: Int @deprecated(reason: "This will be handled by the backend eventually")
+
+  """
+  Experts that are part of this content piece
+  """
+  experts: [ID!]!
+
+  """
+  Which categories are related to this stream
+  """
+  categories: [ID!]!
+
+  """
+  Level of the content being discussed
+  """
+  entryLevel: EntryLevelValue!
+
+  """
+  When the stream should be published
+  """
+  publishedAt: Time
+
+  """
+  A signed video url used to play the video
+  """
+  videoUrl: String!
+
+  """
+  If the stream should only be visible by a single organisation
+  """
+  organisationID: ID
+
+  """
+  List of users hosting the stream
+  """
+  hostedBy: [ID]
+
+  """
+  If only specific groups within the organisation should see the video
+  """
+  organisationGroups: [ID!]
+
+  """
+  If the video is free to watch
+  """
+  isFree: Boolean @deprecated(reason: "No longer applicable")
+
+  """
+  Which regions the content piece can be viewed in
+  """
+  regionRestrictions: [String!]
+
+  """
+  Tags represents hash tags which will be attached to content for better search and better content delivery
+  """
+  tags: [String!]
+
+  """
+  isSensitive represents extra filter on fetching events to make person privacy intact
+  """
+  isSensitive: Boolean!
+}
+
+type StreamMedia {
+  url: String!
+  language: String!
+  length: Int!
+  publishedAt: Time
+}
+
+input StreamMediaInput {
+  """
+  When the stream media should be published
+  """
+  publishedAt: Time
+
+  """
+  s3PresignedUrl path in s3 received after uploading the video via pre signed url
+  """
+  s3PresignedUrl: String
+}
+
+enum StreamStatus {
+  """
+  Future streams that are created from an event are created with this status
+  """
+  RESERVED
+
+  """
+  Newly created streams that are going to be used for live streams are created with this status
+  """
+  CREATED
+
+  """
+  A stream will transition into this status when startStream is called and user goes in backstage to
+  test out their video etc before going live to the audience
+  """
+  BACKSTAGE
+
+  """
+  A stream will transition into this status when user is ready to go live an the agora UID is provided
+  """
+  LIVE
+
+  """
+  Finished is the status assigned to a live stream once the host(s) have stopped streaming
+  """
+  FINISHED
+
+  """
+  The status a stream has once it's been transition into a recording, it's also the default status for streams
+  that are not created to be live streams.
+  """
+  RECORDING
+}
+
+type StreamSubtitles {
+  url: String! @deprecated(reason: "Use srt url instead")
+  language: String!
+  length: Int! @deprecated(reason: "Going to be removed. Not applicable for stream subtitles")
+  publishedAt: Time
+  vttUrl: String!
+  srtUrl: String!
+}
+
+type StripeCoupon {
+  id: String!
+
+  """
+  percentage off discount for this coupon
+  """
+  percentOff: Float!
+
+  """
+  indicate max amount of times this coupon and including
+  all it's child promo code can be redeem.
+  """
+  maxRedemptions: Int!
+
+  """
+  if coupon is not active, all promo code that uses this coupon
+  will also automatically be unusable
+  """
+  active: Boolean!
+
+  """
+  the expiry date for this coupon and all it's child promo code
+  """
+  redeemBy: Time
+  createdAt: Time!
+  totalRedeemed: Int!
+}
+
+"""
+This presents all the types that can be a stripe customer
+"""
+union StripeCustomer = User | Organisation
+
+type StripePromotionCode {
+  id: String!
+  code: String!
+
+  """
+  indicate if the promo code is still usable.
+  Once deactivated, promo code cant be reactivated.
+  """
+  active: Boolean!
+
+  """
+  indicate max amount of times this promo code can be redeem.
+  each customer can only redeem the promo code once.
+  promo code max redemption must be lower than it's base coupon's.
+  """
+  maxRedemptions: Int!
+  coupon: StripeCoupon
+
+  """
+  the customer that has been authorized to use the code.
+  if this is empty, the promo code can be use by any registered stripe customer.
+  """
+  customer: StripeCustomer
+  createdAt: Time!
+  totalRedeemed: Int!
+}
+
+input StripePromotionCodeInput {
+  code: String!
+  percentOff: Float!
+  onlyFirstTimeTransaction: Boolean!
+  maxRedemptions: Uint64
+  redeemableUntil: Time
+  duration: String!
+  userIds: [String!]
+  organisationIds: [String!]
+}
+
+type Subscription {
+  """
+  Subscribe to the chat messages of a stream
+  """
+  chatMessages(streamId: ID!): StreamChatMessage
+
+  """
+  This subscription pushes out all the on-going live streams that are currently live
+  """
+  onGoingStreams: [Stream!]!
+
+  """
+  Subscribe to a specific live stream to receive all the updates from it
+  """
+  stream(id: ID!): Stream
+
+  """
+  Subscribe to the chat messages generic method
+  """
+  chatMessagesV2(id: ID!): ChatMessage
+}
+
+type SubscriptionConnection {
+  meta: PageInfo!
+  edges: [SubscriptionModel!]!
+}
+
+input SubscriptionFilter {
+  limit: Int
+  offset: Int
+}
+
+enum SubscriptionLevel {
+  FREE
+  DIGITAL_ACCESS
+  COMMUNITY_ACCESS
+  FULL_ACCESS
+}
+
+type SubscriptionModel {
+  id: ID!
+  customerId: String
+  subscriptionId: String
+  billingPeriod: String
+  status: String!
+  paidAt: Time
+  startAt: Time
+  endsAt: Time
+  currentPeriodEnd: Time
+  cancelAtPeriodEnd: Boolean!
+  trialUntil: Time
+  seats: Int!
+  maxSeatsCount: Int!
+  accessType: OrganisationSubscriptionAccessType!
+  subscriptionPlan: SubscriptionPlan!
+  taxRate: [TaxRate!]!
+  paymentPlatform: String!
+  coupon: Coupon
+  couponCode: String
+  createdAt: Time!
+  updatedAt: Time!
+
+  """
+  history list all previous ended (due to exceed subscription duration) or canceled
+  subscriptions
+
+  only some fields are populated for historical subscriptions which are
+  customerId,subscriptionId,status,startAt,paidAt,currentPeriodEnd,cancelAtPeriodEnd
+  """
+  history: [SubscriptionModel!]
+}
+
+type SubscriptionPlan {
+  id: ID!
+  currency: String!
+  countryCode: String!
+  interval: Int!
+  amount: Int!
+  show: Boolean!
+  subscriptionLevel: SubscriptionLevel!
+  stripePlanId: String!
+  digitalAccess: Boolean!
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: Time
+}
+
+type SubscriptionPlanConnection {
+  meta: PageInfo!
+  edges: [SubscriptionPlan!]!
+}
+
+input SubscriptionPlanFilter {
+  limit: Int
+  offset: Int
+  currency: String
+  countryCode: String
+  digitalAccess: Boolean
+  show: Boolean
+  subscriptionLevel: String
+  basedOnGeoTagging: Boolean
+}
+
+input SubscriptionPlanInput {
+  currency: String!
+  countryCode: String!
+  subscriptionLevel: String!
+  interval: Int!
+  amount: Int!
+  show: Boolean!
+}
+
+input SuggestedUsersToFollowFilter {
+  isExpert: Boolean
+  isAMemberOfSameOrganisation: Boolean
+  query: String
+  limit: Int!
+  offset: Int!
+
+  """
+  Include users that the current authenticated user is already following
+
+  Default: false
+  """
+  includeUsersAlreadyFollowed: Boolean
+}
+
+input SuggestedUsersToInteractWithFilter {
+  isExpert: Boolean
+  isMemberOfSameOrganisation: Boolean
+  name: String
+  limit: Int!
+  offset: Int!
+}
+
+enum TargetType {
+  USER
+  ORGANISATION
+}
+
+type TaxRate {
+  id: ID!
+  active: Boolean!
+  inclusive: Boolean!
+  country: String!
+  percentage: Float!
+  description: String
+  displayName: String!
+  stripeTaxRateID: String!
+  taxType: String!
+  created: Int!
+  jurisdiction: String
+  livemode: Boolean
+  state: String
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type TaxRateConnection {
+  meta: PageInfo!
+  edges: [TaxRate!]!
+}
+
+input TaxRateFilter {
+  limit: Int
+  offset: Int
+  country: String
+  active: Boolean
+  id: [ID]
+  inclusive: Boolean
+}
+
+scalar Time
+
+"""
+Shows the timeline of a specific cohort
+"""
+type Timeline {
+  """
+  Unique identifier for the timeline
+  """
+  id: ID!
+
+  """
+  Content
+  """
+  content: ContentCard!
+
+  """
+  Count of users currently on the content
+  """
+  activeUserCount: Int!
+
+  """
+  Users which will be displayed over the content
+  """
+  featuredUsers: [User!]!
+
+  """
+  List of all the users on the content
+  """
+  users(filter: TimelineUserFilter, pagination: CursorPaginationInput): UserCursorCollection!
+
+  """
+  The chat associated to this timeline
+  """
+  chat: Chat!
+}
+
+input TimelineUserFilter {
+  limit: Int
+  query: String
+}
+
+input TimeRangeFilter {
+  from: Time!
+  to: Time!
+}
+
+type TopCategoryConsumed {
+  category: Category
+  duration: Int
+}
+
+input TrackingData {
+  total: Int!
+  current: Int!
+  currentPlacement: Int!
+}
+
+type Transcript {
+  index: Int!
+  page: String!
+}
+
+input TranscriptInput {
+  index: Int!
+  page: String!
+}
+
+scalar Uint32
+
+scalar Uint64
+
+input UpdateComment {
+  """
+  To be deprecated: Use raw text instead
+  """
+  comment: String!
+  commentId: ID!
+  type: CommentType!
+  rawText: String
+  mentions: [MentionInput]
+}
+
+input UpdateContentUserNote {
+  headline: String!
+  body: String!
+}
+
+"""
+Backoffice needs an API that updates both user and backoffice fields
+"""
+input UpdateExpertUserInput {
+  """
+  The users job title
+  """
+  jobTitle: String
+
+  """
+  Which roles the user should have, this only applies if the updating user is an admin
+  """
+  roles: [String!]
+
+  """
+  The users first name
+  """
+  firstName: String!
+
+  """
+  The users last name
+  """
+  lastName: String!
+
+  """
+  The users email
+
+  This will be removed from this API Call in the future
+  """
+  email: String!
+
+  """
+  The users company
+  """
+  company: String
+
+  """
+  Avatar image ID
+  """
+  avatarImage: ID
+
+  """
+  Cover image ID
+  """
+  coverImage: ID
+
+  """
+  facebookLink represents facebook profile url
+  """
+  facebookLink: String
+
+  """
+  twitterHandle represents twitter handle name
+  """
+  twitterHandle: String
+
+  """
+  twitterHandle represents instagram handle name
+  """
+  instagramHandle: String
+
+  """
+  linkedinLink represents linkedin profile url
+  """
+  linkedinLink: String
+
+  """
+  Link to the users website
+  """
+  websiteLink: String
+
+  """
+  Update the users biography
+  """
+  biography: String
+
+  """
+  If specified only users that belong to this organisation can view this thinkfluencer
+  """
+  organisationID: ID
+
+  """
+  If specified only groups within the provided organisation can view this thinkfluencer
+  """
+  organisationGroups: [ID!]!
+
+  """
+  If the thinkfluencer is restricted to certain regions
+  """
+  restrictedRegions: [String!]!
+
+  """
+  If an expert is a mentor
+  """
+  isMentor: Boolean!
+
+  """
+  How much the mentor would charge for a session
+  """
+  mentorPriceText: String!
+
+  """
+  If the mentor is available for mentoring this contains some brief information to their capabilities
+  """
+  mentorAvailableText: String!
+
+  """
+  How important the thinkfluencer is when it comes to listen thinkfluencers
+  """
+  priority: Int!
+
+  """
+  Which categories this user is considered to be an expert in
+  """
+  categories: [ID!]!
+}
+
+"""
+Backoffice org admins should be able to update a number of fields on a user
+"""
+input UpdateUserAsOrgAdmin {
+  """
+  The users first name
+  """
+  firstName: String!
+
+  """
+  The users last name
+  """
+  lastName: String!
+
+  """
+  The users email
+  """
+  email: String!
+
+  """
+  The users company
+  """
+  company: String!
+
+  """
+  Avatar image ID
+  """
+  avatarImage: ID
+
+  """
+  Cover image ID
+  """
+  coverImage: ID
+
+  """
+  facebookLink represents facebook profile url
+  """
+  facebookLink: String!
+
+  """
+  twitterHandle represents twitter handle name
+  """
+  twitterHandle: String!
+
+  """
+  twitterHandle represents instagram handle name
+  """
+  instagramHandle: String!
+
+  """
+  linkedinLink represents linkedin profile url
+  """
+  linkedinLink: String!
+
+  """
+  Link to the users website
+  """
+  websiteLink: String!
+
+  """
+  Update the users biography
+  """
+  biography: String!
+
+  """
+  The users job title
+  """
+  jobTitle: String!
+
+  """
+  If the user should be considered an expert within their own organisation, if called will add the org filter
+  """
+  isExpert: Boolean!
+
+  """
+  If the user should be able to perform organisation live streams
+  """
+  isAbleToLiveStream: Boolean!
+}
+
+input UpdateUserInput {
+  """
+  Which roles the user should have, this only applies if the updating user is an admin
+  """
+  roles: [String!]
+
+  """
+  The users password, if not specific it's not updated.
+
+  This will be removed in the future
+  """
+  password: String
+
+  """
+  The users first name
+  """
+  firstName: String!
+
+  """
+  The users last name
+  """
+  lastName: String!
+
+  """
+  The users email
+
+  This will be removed from this API Call in the future
+  """
+  email: String!
+
+  """
+  The users company
+  """
+  company: String
+
+  """
+  Avatar image ID
+  """
+  avatarImage: ID
+
+  """
+  Cover image ID
+  """
+  coverImage: ID
+
+  """
+  facebookLink represents facebook profile url
+  """
+  facebookLink: String
+
+  """
+  twitterHandle represents twitter handle name
+  """
+  twitterHandle: String
+
+  """
+  twitterHandle represents instagram handle name
+  """
+  instagramHandle: String
+
+  """
+  linkedinLink represents linkedin profile url
+  """
+  linkedinLink: String
+
+  """
+  Link to the users website
+  """
+  websiteLink: String
+
+  """
+  Update the users biography
+  """
+  biography: String
+
+  """
+  The users job title
+  """
+  jobTitle: String
+
+  """
+  Users job seniority
+  """
+  seniority: String
+
+  """
+  The users businessEmail email
+  """
+  businessEmail: String
+
+  """
+  The users mobile number
+  """
+  mobileNumber: String
+}
+
+input UpdateUserLifegoalsInput {
+  lifegoals: [String!]
+}
+
+scalar Upload
+
+input UpsertEbookChaptersInput {
+  language: String!
+  length: Int!
+  chapters: [ChapterInput!]!
+  publishedAt: Time
+}
+
+input UpsertStreamMediaInput {
+  """
+  The StreamID.
+  """
+  id: ID!
+
+  """
+  The language for media / subtitle.
+  """
+  language: String!
+
+  """
+  input related to stream video
+  """
+  video: StreamMediaInput
+
+  """
+  input related to stream subtitle
+  """
+  subtitle: StreamMediaInput
+}
+
+type User {
+  id: ID!
+  facebookId: String
+  googleId: String
+  microsoftId: String
+  firstName: String!
+  lastName: String!
+  company: String!
+  jobTitle: String!
+  seniority: String!
+  joiningReason: String!
+  persona: Persona @deprecated(reason: "This is deprecated and will be removed in the next major release")
+  personaQuestionAnswers: PersonaConnection!
+    @deprecated(reason: "This is deprecated and will be removed in the next major release")
+  email: String!
+  mobileNumber: String!
+  roles: [String!]!
+  blocked: Boolean!
+  authBlockUntil: Time
+  newsletter: Boolean!
+
+  """
+  All of the events that the user has signed up to
+  """
+  events(filter: EventFilter, sorting: SortOrdering): EventConnection!
+  lifegoals: [Lifegoal!]!
+  subscription: SubscriptionModel
+  accessLevel: SubscriptionLevel!
+  stripeCustomers: Map!
+  creditCard: [UserCreditCard!]
+  stats: UserStats!
+  devices: [String!]!
+  couponCode: String!
+  couponRemainingCharges: Int!
+  couponVisible: Boolean!
+  consumedTrialContent: [UserConsumedTrialContent!]
+    @deprecated(reason: "This is deprecated and will be removed in the next major release")
+
+  """
+  Content the user has started but is yet to finish
+  """
+  ongoingContent(filter: ConsumableContentFilter!): ConsumableContentCollection!
+
+  """
+  Content the user has finished
+  """
+  finishedContent(filter: ConsumableContentFilter!): ConsumableContentCollection!
+
+  """
+  We have this field because backoffice needs a way to associate thinkfluencer to organisers
+
+  PLEASE DO NOT USE THIS FIELD IN MOBILE ITS FOR BACKOFFICE ONLY!
+  """
+  expertOrg: Organisation @deprecated(reason: "Dont use thie field its for backoffice only")
+
+  """
+  Which groups within the org this user is visible to
+  """
+  expertOrgGroups: [OrganisationGroup!]! @deprecated(reason: "dont use for the same reason a thinfkluencerOrg")
+
+  """
+  Categories in which this user is considered an expert
+  """
+  expertInTheseCategories: [Category!]!
+
+  """
+  Organisation reflects the organisation in the JWT token associated to the GraphQL API call
+
+  **Note:** This ONLY works when called against the current user ID
+  """
+  organisation: Organisation
+
+  """
+  Organisations the user is associated to, will be deprecated in the future allowing only a single organisatio
+  """
+  organisations(isAdmin: Boolean): [Organisation!]!
+
+  """
+  Organisation groups the user is associated to
+  """
+  organisationGroups: [OrganisationGroup!]
+
+  """
+  Business email of the user
+  """
+  businessEmail: String!
+
+  """
+  Retrieve the notes created by a user
+  """
+  contentCardsWithNotes(filter: ContentUserNoteFilter!): ContentConnection!
+
+  """
+  Get the recommended content for the user based on the Merlin project
+  """
+  contentRecommendations: ContentConnection!
+
+  """
+  Categories of which the user has recently consumed content from
+  """
+  recentlyConsumedCategories: [Category!]!
+
+  """
+  A list of expert recommendations for a user
+  """
+  expertRecommendations: ExpertCollection!
+
+  """
+  The amount of time a user has spent consuming content in seconds
+  """
+  statsContentConsumedTotal: Int!
+
+  """
+  Exposes if the user is associated to an expert profile
+  """
+  expert: Expert
+
+  """
+  Assignments associated to the user
+  """
+  assignments(filter: AssignmentsFilter!, sorting: SortOrdering): AssignmentConnection!
+
+  """
+  Statistics over how well the user their assignments
+  """
+  assignmentStatistics: UserAssignmentStatistics!
+
+  """
+  General statistics over all the content pieces the user has been assigned
+  """
+  assignmentContentStatistics: [UserAssignmentContentStatistics!]!
+
+  """
+  The last time a API call was made from this users device
+  """
+  lastOnlineAt: Time
+
+  """
+  When the user was created
+  """
+  createdAt: Time!
+
+  """
+  When the user was last updated
+  """
+  updatedAt: Time!
+
+  """
+  When the user was deleted
+  """
+  deletedAt: Time
+
+  """
+  If the user is an expert
+  """
+  isExpert: Boolean!
+
+  """
+  URL Friendly slug that can be used as a unique identifier
+  """
+  slug: String!
+
+  """
+  isFollowing flag to check user follow the respective person or not
+  """
+  isFollowing: Boolean!
+
+  """
+  If an expert is a mentor
+  """
+  isMentor: Boolean!
+
+  """
+  How much the mentor would charge for a session
+  """
+  mentorPriceText: String
+
+  """
+  If the mentor is available for mentoring this contains some brief information to their capabilities
+  """
+  mentorAvailableText: String
+
+  """
+  facebookLink represents facebook profile url
+  """
+  facebookLink: String
+
+  """
+  twitterHandle represents twitter handle name
+  """
+  twitterHandle: String
+
+  """
+  twitterHandle represents instagram handle name
+  """
+  instagramHandle: String
+
+  """
+  linkedinLink represents linkedin profile url
+  """
+  linkedinLink: String
+
+  """
+  Users personal website
+  """
+  websiteLink: String
+
+  """
+  Users biography
+  """
+  biography: String
+
+  """
+  Preferred language of the user to watch or read content on
+  """
+  preferredLanguage: String
+
+  """
+  No. of users following current user
+  """
+  followerCount: Int!
+
+  """
+  No. of users followed by current user
+  """
+  followingCount: Int!
+
+  """
+  Count of content user has completed
+  """
+  contentCompletedCount: Int!
+
+  """
+  Count of content user has created
+  """
+  contentCreatedCount: Int!
+
+  """
+  Count of contents user has opened in current month
+  """
+  monthlyConsumedContentCount: Int!
+
+  """
+  Prioritize the experts in search results
+  """
+  priority: Int!
+
+  """
+  Custom avatar image
+  """
+  avatarImage: Image!
+
+  """
+  Custom cover image if the user has uploaded an image
+  """
+  coverImage: Image
+
+  """
+  user follower list
+  """
+  followers(filter: FollowersFollowingFilter, sorting: SortOrdering): UserCollection!
+
+  """
+  user following list from fastlane along with a set of users that the user
+  can possibly follow based on connections
+  """
+  suggestedUsersToFollow(filter: SuggestedUsersToFollowFilter, sorting: SortOrdering): UserCollection!
+
+  """
+  user following list
+  """
+  followings(filter: FollowersFollowingFilter, sorting: SortOrdering): UserCollection!
+
+  """
+  user top listened experts
+  """
+  userTopListenedExperts: [User!]!
+
+  """
+  user top categories consumed
+  """
+  userTopCategories: [TopCategoryConsumed!]!
+
+  """
+  The users social feed
+  """
+  feed(filter: FeedFilter!): FeedConnection!
+
+  """
+  Trail cohorts that the user belong to
+  """
+  cohorts(filter: CohortFilter!, pagination: CursorPaginationInput): CohortConnection!
+
+  """
+  Retrieve the onboarding questions the user has replied to
+  """
+  repliedPollQuestions(filter: OnboardingQuestionsFilter!, pagination: OffsetPagination!): PollQuestionConnection
+
+  """
+  The number of pending cohort invitations
+  """
+  pendingCohortInvitations: Int!
+
+  """
+  Indicates whether the user has completed his/her onboarding process
+  """
+  completedOnboarding: Boolean!
+
+  """
+  IsBillable tells if user added to any organisation, should they be count towards their billable users or not
+  billable means those users will counted towards the number of licences(user count) set during contract
+  """
+  isBillable: Boolean!
+
+  """
+  Status of user account.
+  BLOCKED - user is blocked. This status will be priority over others.
+  ACTIVE - user has logged in before.
+  PENDING ACTIVATION - user never logged in before.
+  """
+  status: OrgMemberStatus!
+  type: ContentType!
+  suggestedUsersToInteractWith(filter: SuggestedUsersToInteractWithFilter!, sorting: SortOrdering): UserCollection!
+
+  """
+  The number of new notifications user received since last opening the notification centre
+  """
+  newNotifications(filter: NotificationFilter): Int!
+
+  """
+  All the user notifications
+  """
+  notifications(filter: NotificationFilter, pagination: CursorPaginationInput): NotificationConnection!
+
+  """
+  Show the users current notification preferences
+  """
+  notificationPreferences: [UserNotificationPreference!]!
+}
+
+type UserAssignmentContentStatistics {
+  """
+  The ID of the content piece
+  """
+  contentId: ID!
+
+  """
+  The name of the content piece
+  """
+  contentName: String!
+
+  """
+  The estimated length of the content piece
+  """
+  contentLength: Int!
+
+  """
+  The users progress in percent
+  """
+  completionRate: Float!
+}
+
+type UserAssignmentStatistics {
+  assignedTrails: Int!
+  completedTrails: Int!
+  assignedPodcasts: Int!
+  completedPodcasts: Int!
+  assignedEbooks: Int!
+  completedEbooks: Int!
+  assignedStreams: Int!
+  completedStreams: Int!
+}
+
+input UserChangePasswordInput {
+  oldPassword: String!
+  newPassword: String!
+}
+
+type UserCollection {
+  meta: PageInfo!
+  edges: [User!]!
+}
+
+type UserCollectionTracking {
+  id: ID!
+  learningPathId: ID
+  curatedListId: ID @deprecated(reason: "Will be removed in the future because we have dropped curated lists")
+  following: Boolean
+  finishedAt: Time
+  updatedAt: Time
+  createdAt: Time!
+}
+
+input UserCollectionTrackingFilter {
+  limit: Int
+  offset: Int
+  type: CollectionType @deprecated(reason: "Will be removed in the future because we have dropped curated lists")
+  following: Boolean
+  finishedAt: Time
+
+  """
+  Don't return trails or curated lists that been finished
+  """
+  excludeFinished: Boolean
+}
+
+input UserCollectionTrackingInput {
+  learningPathId: ID
+  curatedListId: ID @deprecated(reason: "Will be removed in the future because we have dropped curated lists")
+  following: Boolean
+  finishedAt: Time
+  collectionType: CollectionType
+    @deprecated(reason: "Will be removed in the future because we have dropped curated lists")
+}
+
+type UserConsumedTrialContent {
+  id: ID!
+  userId: ID!
+  contentId: ID!
+  consumedAt: Time!
+}
+
+type UserContentTracking {
+  id: ID!
+  EventId: String
+  EbookId: String
+  PodcastId: String
+  StreamId: String
+  total: Int!
+  current: Int!
+  currentPlacement: Int!
+  isFinished: Boolean!
+  isAttending: Boolean!
+  isFavorite: Boolean! @deprecated(reason: "use bookmarkedAt")
+  isBookmarked: Boolean! @deprecated(reason: "use bookmarkedAt")
+  userRating: Float
+
+  """
+  Retrieve a users notes on the content card
+  """
+  notes(filter: ContentUserNoteFilter!): NotesConnection!
+  finishedAt: Time
+  checkedInAt: Time
+  lastOpenedAt: Time
+  bookmarkedAt: Time
+  updatedAt: Time!
+  createdAt: Time!
+}
+
+type UserCreditCard {
+  """
+  Expiration month of the credit card
+  """
+  expMonth: Int!
+
+  """
+  Expiration year of the credit card
+  """
+  expYear: Int!
+
+  """
+  What type of card
+
+  - credit
+  - debit
+  - prepaid
+  - unknown
+  """
+  funding: String!
+
+  """
+  Last four digits of the credit card
+  """
+  last4: String!
+
+  """
+  Brand of credit card used
+
+  - "American Express"
+  - "Discover"
+  - "Diners Club"
+  - "JCB"
+  - "MasterCard"
+  - "Unknown"
+  - "UnionPay"
+  - "Visa"
+  """
+  brand: String!
+
+  """
+  Can either be apple_pay / google_pay or an empty string
+  """
+  tokenizationMethod: String!
+}
+
+type UserCursorCollection {
+  meta: CursorInfo!
+  edges: [UserEdge!]!
+}
+
+type UserEdge {
+  cursor: String!
+  user: User!
+}
+
+input UserFilter {
+  limit: Int
+  offset: Int
+  email: String
+  name: String
+  createdAt: TimeRangeFilter
+}
+
+input UserInAppSubscriptionInput {
+  planId: ID!
+  transactionReceipt: String!
+}
+
+type UserNotificationPreference {
+  type: NotificationType!
+  name: String!
+  platform: NotificationPlatform!
+  state: NotificationPreferenceState!
+}
+
+enum UserRole {
+  admin
+  expert
+  user
+  guest
+  livestream
+  org_admin
+  org_livestream
+}
+
+type UserStats {
+  ebooksRead: Int!
+  podcastsCompleted: Int!
+  eventsBooked: Int!
+  eventsAttended: Int!
+  videosCompleted: Int!
+}
