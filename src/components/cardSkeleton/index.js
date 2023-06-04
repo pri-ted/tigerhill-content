@@ -1,7 +1,7 @@
 import { Box, SkeletonCircle, Skeleton, Flex, Stack } from '@chakra-ui/react'
 
 const CardSkeleton = () => {
-  return <Box boxShadow="lg" bg="white" borderRadius={"8px"} pb="12px" overflow="hidden" marginTop="0.75rem">
+  return <Box boxShadow="lg" bg="white" borderRadius={"8px"} pb="12px" overflow="hidden" marginTop="0.75rem" maxW="sm">
     <Box position="relative">
       <Skeleton height="166px" />
       <Skeleton height="40px" borderRadius="0 0 8px" startColor="#000000bb" endColor="black.300" position="absolute" top="0" left="0" width="35%" />

@@ -16,6 +16,8 @@ const ContentView = (props) => {
   const [hasMore, _setHasMore] = useState(true);
   const [loadMore, _setLoadMore] = useState(false);
   const [isLoading, _setIsLoading] = useState(false);;
+
+  //Function to do GraphQl query with current filters, sorting, tags etc
   const fetchContents = () => {
     _setIsLoading(true);
     let oldFilters = { ...filters };
@@ -35,6 +37,7 @@ const ContentView = (props) => {
           let imgRes = { width: window.innerWidth - 60 };
 
           let parsedContents = [];
+          // Parse the available edge data to render Card
           res.data.contentCards.edges.forEach(item => {
             if (Object.keys(item).length > 2) {
               parsedContents.push(contentParser(item, item.type, imgRes))
@@ -57,8 +60,7 @@ const ContentView = (props) => {
   }
   const loadMoreData = () => {
     _setLoadMore(true);
-    // Simulating loading more items
-
+    //Trigger loading more items based
   };
   useEffect(() => {
     if (loadMore) {
@@ -68,16 +70,16 @@ const ContentView = (props) => {
   }, [loadMore]);
 
   useEffect(() => {
+    // Disable fetching of more data if total limit has been reached
     if (contents.length && queryMeta.total && queryMeta.total > -1 && contents.length >= queryMeta.total) {
       _setHasMore(false)
     }
 
   }, [contents, queryMeta])
 
-  // useEffect(() => {
-  //   fetchContents();
-  // }, [])
+
   const handleSearchInput = (name, value) => {
+    //Reset All filters, contents and app search text in keywords
     let oldFilters = { ...initFilter };
     oldFilters.keywords = value;
     _setFilters({ ...oldFilters, })

@@ -5,3 +5,23 @@
   font-weight: normal;
   font-style: normal;
 }
+/* CSS to hide the scrollbar */
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+/* For Chrome, Safari, and Opera */
+*::-webkit-scrollbar {
+  width: 0px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}

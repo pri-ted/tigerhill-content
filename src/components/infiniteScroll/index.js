@@ -3,25 +3,26 @@ import React, { useState, useEffect } from 'react';
 import debounce from '../../utils/debounce';
 import CardSkeleton from '../cardSkeleton';
 const InfiniteScroll = (props) => {
-  const [isError, setIsError] = useState(false);
+  const [isError, _setIsError] = useState(false);
 
 
 
 
   useEffect(() => {
-    let prevBoundingRect = window.pageYOffset;
+    let prevPageYOffset = window.pageYOffset;
     let { hasMore, isLoading } = props;
     const handleScroll = debounce(async () => {
       const boundingRect = document.getElementById('scroller').getBoundingClientRect();
-      if (boundingRect.bottom <= window.innerHeight + 350 && hasMore && window.pageYOffset > prevBoundingRect - 1) {
+      // check for scrolling direction and allowed to fetch more data when scrolling is reached to almost last card
+      if (boundingRect.bottom <= window.innerHeight + 350 && hasMore && window.pageYOffset > prevPageYOffset - 1) {
         if (!isLoading) {
           try {
             await props.loadMore();
           } catch (error) {
-            setIsError(true);
+            _setIsError(true);
           }
         }
-        prevBoundingRect = window.pageYOffset
+        prevPageYOffset = window.pageYOffset
       }
     }, 100);
     window.addEventListener('scroll', handleScroll);
