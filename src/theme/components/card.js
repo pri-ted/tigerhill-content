@@ -1,0 +1,44 @@
+import { cardAnatomy } from '@chakra-ui/anatomy'
+import { createMultiStyleConfigHelpers } from '@chakra-ui/react'
+
+const { definePartsStyle, defineMultiStyleConfig } =
+  createMultiStyleConfigHelpers(cardAnatomy.keys)
+
+const baseStyle = definePartsStyle({
+  // define the part you're going to style
+  container: {
+    backgroundColor: '#e7e7e7',
+  },
+  header: {
+    paddingBottom: '2px',
+  },
+  body: {
+    paddingTop: '0px',
+  },
+  footer: {
+    paddingTop: '2px',
+  },
+})
+
+const sizes = {
+  md: definePartsStyle({
+    container: {
+      borderRadius: '0px',
+    },
+  }),
+}
+
+const variants = {
+  content: definePartsStyle({
+    container: {
+      borderWidth: "2px",
+      borderRadius: "8px",
+      background: "#ffffff"
+    },
+    body: {
+      padding: "0"
+    }
+  })
+}
+
+export const cardTheme = defineMultiStyleConfig({ baseStyle, sizes, variants })
